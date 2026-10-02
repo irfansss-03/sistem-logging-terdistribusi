@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,18 +15,18 @@
     <!-- ══════════════ HEADER ══════════════ -->
     <header class="header">
         <h1 class="title">ADVANCED CYBERSECURITY DEFENSE CENTER</h1>
-        <p class="subtitle">Sistem Logging Terdistribusi untuk Deteksi Serangan Jaringan</p>
+        <p class="subtitle">Distributed Logging System for Network Attack Detection</p>
         <p class="data-source">
-            Sumber data: <code>hasil.txt</code> (output Hadoop MapReduce) &amp;
-            <code>logs.txt</code> (log dari REST API) &middot;
-            <span id="last-update">memuat…</span>
+            Data sources: <code>hasil.txt</code> (Hadoop MapReduce output) &amp;
+            <code>logs.txt</code> (logs received by the REST API) &middot;
+            <span id="last-update">loading…</span>
         </p>
     </header>
 
-    <!-- ══════════════ STATUS SISTEM ══════════════ -->
+    <!-- ══════════════ SYSTEM STATUS ══════════════ -->
     <section class="panel">
         <h2 class="panel-title">SYSTEM STATUS</h2>
-        <div class="system-status" id="status-line">MEMUAT…</div>
+        <div class="system-status" id="status-line">LOADING…</div>
         <div class="status-counts">
             <div class="count-box">
                 <div class="count-value danger" id="stat-failed">–</div>
@@ -40,11 +40,11 @@
         <div class="threat-level low" id="threat-level">THREAT LEVEL: –</div>
     </section>
 
-    <!-- ══════════════ TIMELINE ══════════════ -->
+    <!-- ══════════════ THREAT TIMELINE ══════════════ -->
     <section class="panel">
         <h2 class="panel-title">THREAT TIMELINE</h2>
         <div class="bar-chart" id="timeline-chart">
-            <div class="notice">Menunggu data…</div>
+            <div class="notice">Waiting for data…</div>
         </div>
         <div class="legend">
             <span class="lg-failed">Failed</span>
@@ -52,69 +52,69 @@
         </div>
     </section>
 
-    <!-- ══════════════ KONFIGURASI ══════════════ -->
+    <!-- ══════════════ SYSTEM CONFIGURATION ══════════════ -->
     <section class="panel">
-        <h2 class="panel-title">KONFIGURASI SISTEM</h2>
+        <h2 class="panel-title">SYSTEM CONFIGURATION</h2>
         <div class="info-list">
             <div class="info-row"><span class="k">REST API</span><span class="v">POST · GET /logs</span></div>
-            <div class="info-row"><span class="k">Port server</span><span class="v">3000</span></div>
-            <div class="info-row"><span class="k">Integritas log</span><span class="v">SHA-256</span></div>
-            <div class="info-row"><span class="k">Pemrosesan</span><span class="v">Hadoop MapReduce</span></div>
-            <div class="info-row"><span class="k">Penyimpanan</span><span class="v">logs.txt (JSON Lines)</span></div>
-            <div class="info-row"><span class="k">Refresh dashboard</span><span class="v">15 detik</span></div>
+            <div class="info-row"><span class="k">Server port</span><span class="v">3000</span></div>
+            <div class="info-row"><span class="k">Log integrity</span><span class="v">SHA-256</span></div>
+            <div class="info-row"><span class="k">Processing</span><span class="v">Hadoop MapReduce</span></div>
+            <div class="info-row"><span class="k">Storage</span><span class="v">logs.txt (JSON Lines)</span></div>
+            <div class="info-row"><span class="k">Dashboard refresh</span><span class="v">15 seconds</span></div>
         </div>
     </section>
 
-    <!-- ══════════════ TOP SUMBER SERANGAN ══════════════ -->
+    <!-- ══════════════ TOP ATTACK SOURCES ══════════════ -->
     <section class="panel">
-        <h2 class="panel-title">TOP SUMBER SERANGAN</h2>
+        <h2 class="panel-title">TOP ATTACK SOURCES</h2>
         <div class="rank-list" id="attacker-list">
-            <div class="notice">Menunggu data…</div>
+            <div class="notice">Waiting for data…</div>
         </div>
     </section>
 
-    <!-- ══════════════ RINGKASAN DETEKSI ══════════════ -->
+    <!-- ══════════════ DETECTION SUMMARY ══════════════ -->
     <section class="panel">
-        <h2 class="panel-title">RINGKASAN DETEKSI</h2>
+        <h2 class="panel-title">DETECTION SUMMARY</h2>
         <div class="stats-grid">
             <div class="stat-item">
                 <div class="stat-value" id="sum-failed">–</div>
-                <div class="stat-label">FAILED LOGIN</div>
+                <div class="stat-label">FAILED LOGINS</div>
             </div>
             <div class="stat-item">
                 <div class="stat-value" id="sum-success">–</div>
-                <div class="stat-label">SUCCESSFUL LOGIN</div>
+                <div class="stat-label">SUCCESSFUL LOGINS</div>
             </div>
             <div class="stat-item">
                 <div class="stat-value" id="sum-total">–</div>
-                <div class="stat-label">TOTAL LOG</div>
+                <div class="stat-label">TOTAL LOGS</div>
             </div>
             <div class="stat-item">
                 <div class="stat-value" id="sum-ratio">–</div>
-                <div class="stat-label">RASIO GAGAL</div>
+                <div class="stat-label">FAILURE RATIO</div>
             </div>
         </div>
     </section>
 
-    <!-- ══════════════ STATISTIK LOG ══════════════ -->
+    <!-- ══════════════ LOG STATISTICS ══════════════ -->
     <section class="panel">
-        <h2 class="panel-title">STATISTIK LOG</h2>
+        <h2 class="panel-title">LOG STATISTICS</h2>
         <div class="stats-grid">
             <div class="stat-item">
                 <div class="stat-value" id="log-total">–</div>
-                <div class="stat-label">ENTRI DI logs.txt</div>
+                <div class="stat-label">ENTRIES IN logs.txt</div>
             </div>
             <div class="stat-item">
                 <div class="stat-value" id="log-sources">–</div>
-                <div class="stat-label">SUMBER UNIK</div>
+                <div class="stat-label">UNIQUE SOURCES</div>
             </div>
             <div class="stat-item">
                 <div class="stat-value" id="log-attackers">–</div>
-                <div class="stat-label">IP PENYERANG</div>
+                <div class="stat-label">ATTACKER IPs</div>
             </div>
             <div class="stat-item">
                 <div class="stat-value" id="log-window">–</div>
-                <div class="stat-label">PERIODE DATA</div>
+                <div class="stat-label">DATA PERIOD</div>
             </div>
         </div>
     </section>
@@ -123,12 +123,12 @@
     <section class="panel panel-wide">
         <h2 class="panel-title">ACTIVITY LOG</h2>
         <div class="log-container" id="log-container">
-            <div class="notice">Menunggu data…</div>
+            <div class="notice">Waiting for data…</div>
         </div>
     </section>
 
     <div class="footer">
-        Praktikum Sistem Terdistribusi &middot;
+        Distributed Systems Practicum &middot;
         Achmed Nazriel L. (2423600003) &amp; Syafan Aditya I. (2423600004)
     </div>
 
@@ -136,15 +136,15 @@
 
 <script>
 /* ======================================================
-   Dashboard — seluruh angka dihitung dari data nyata:
-     • hasil.txt → output Hadoop MapReduce
-     • logs.txt  → log yang diterima REST API (JSON Lines)
-   Tidak ada nilai statis / tiruan.
+   Dashboard — every number is computed from real data:
+     • hasil.txt → Hadoop MapReduce output
+     • logs.txt  → logs received by the REST API (JSON Lines)
+   There are no static or placeholder values.
    ====================================================== */
 
 const REFRESH_MS = 15000;
 
-/* ── Latar: hujan biner ─────────────────────────────── */
+/* ── Background: binary rain ────────────────────────── */
 (function initRain() {
     const rain = document.getElementById('binaryRain');
     const total = Math.min(28, Math.floor(window.innerWidth / 50));
@@ -160,7 +160,7 @@ const REFRESH_MS = 15000;
     }
 })();
 
-/* ── Pengambilan data ───────────────────────────────── */
+/* ── Data fetching ──────────────────────────────────── */
 async function fetchText(url) {
     const res = await fetch(`${url}?${Date.now()}`);   // cache-busting
     if (!res.ok) throw new Error(`${url} → HTTP ${res.status}`);
@@ -185,12 +185,12 @@ function parseLogs(text) {
         const trimmed = line.trim();
         if (!trimmed) continue;
         try { entries.push(JSON.parse(trimmed)); }
-        catch { /* lewati baris yang rusak */ }
+        catch { /* skip malformed lines */ }
     }
     return entries;
 }
 
-/* ── Klasifikasi & ekstraksi ────────────────────────── */
+/* ── Classification & extraction ────────────────────── */
 function classify(message) {
     const m = String(message || '').toLowerCase();
     if (m.includes('failed')) return 'failed';
@@ -203,12 +203,12 @@ function extractIp(message) {
     return m ? m[1] : null;
 }
 
-/* ── Analisis ───────────────────────────────────────── */
+/* ── Analysis ───────────────────────────────────────── */
 function analyze(entries) {
     const stats = {
         failed: 0, success: 0,
-        sources: new Map(),      // sumber → {failed, success}
-        attackers: new Map(),    // IP / sumber → jumlah gagal
+        sources: new Map(),      // source → {failed, success}
+        attackers: new Map(),    // IP / source → failed count
         buckets: new Map(),      // "HH:MM" → {failed, success}
         last: null, first: null,
         total: entries.length,
@@ -219,7 +219,7 @@ function analyze(entries) {
         if (kind === 'failed') stats.failed++;
         else if (kind === 'success') stats.success++;
 
-        const source = entry.source || 'tidak diketahui';
+        const source = entry.source || 'unknown';
         if (!stats.sources.has(source)) stats.sources.set(source, { failed: 0, success: 0 });
         const s = stats.sources.get(source);
         if (kind === 'failed') s.failed++;
@@ -273,9 +273,9 @@ function render(result) {
     threatEl.textContent = `THREAT LEVEL: ${level.label}`;
 
     document.getElementById('last-update').textContent =
-        `diperbarui ${new Date().toLocaleTimeString('id-ID')}`;
+        `updated ${new Date().toLocaleTimeString('en-GB')}`;
 
-    // Ringkasan deteksi
+    // Detection summary
     const totalHasil = hasil.failed + hasil.success;
     document.getElementById('sum-failed').textContent = hasil.failed;
     document.getElementById('sum-success').textContent = hasil.success;
@@ -283,7 +283,7 @@ function render(result) {
     document.getElementById('sum-ratio').textContent =
         totalHasil ? `${Math.round((hasil.failed / totalHasil) * 100)}%` : '0%';
 
-    // Statistik log
+    // Log statistics
     document.getElementById('log-total').textContent = stats.total;
     document.getElementById('log-sources').textContent = stats.sources.size;
     document.getElementById('log-attackers').textContent = stats.attackers.size;
@@ -301,11 +301,11 @@ function renderTimeline(buckets) {
     const host = document.getElementById('timeline-chart');
 
     if (buckets.size === 0) {
-        host.innerHTML = '<div class="notice">Belum ada log pada logs.txt</div>';
+        host.innerHTML = '<div class="notice">No logs in logs.txt yet</div>';
         return;
     }
 
-    // Ambil 12 slot waktu terakhir (kunci "HH:MM" sudah urut secara leksikografis).
+    // Take the last 12 time slots ("HH:MM" keys sort lexicographically).
     const keys = [...buckets.keys()].sort().slice(-12);
     const max = Math.max(
         1,
@@ -334,7 +334,7 @@ function renderAttackers(attackers) {
     const host = document.getElementById('attacker-list');
 
     if (attackers.size === 0) {
-        host.innerHTML = '<div class="notice">Tidak ada percobaan login gagal</div>';
+        host.innerHTML = '<div class="notice">No failed login attempts</div>';
         return;
     }
 
@@ -353,11 +353,11 @@ function renderActivityLog(entries) {
     const host = document.getElementById('log-container');
 
     if (!entries.length) {
-        host.innerHTML = '<div class="notice">Belum ada log pada logs.txt</div>';
+        host.innerHTML = '<div class="notice">No logs in logs.txt yet</div>';
         return;
     }
 
-    // Terbaru di atas.
+    // Newest first.
     const rows = [...entries].sort((a, b) =>
         String(b.timestamp || '').localeCompare(String(a.timestamp || ''))
     ).slice(0, 60);
@@ -382,14 +382,14 @@ function escapeHtml(value) {
 }
 
 function renderError(message) {
-    document.getElementById('status-line').textContent = 'GAGAL MEMUAT DATA';
+    document.getElementById('status-line').textContent = 'FAILED TO LOAD DATA';
     for (const id of ['timeline-chart', 'attacker-list', 'log-container']) {
         document.getElementById(id).innerHTML =
             `<div class="notice error">${escapeHtml(message)}</div>`;
     }
 }
 
-/* ── Siklus utama ───────────────────────────────────── */
+/* ── Main loop ──────────────────────────────────────── */
 async function refresh() {
     try {
         const [hasilText, logsText] = await Promise.all([
@@ -404,8 +404,8 @@ async function refresh() {
             entries,
         });
     } catch (err) {
-        // Umumnya karena halaman dibuka via file:// — fetch diblokir browser.
-        renderError(`${err.message}. Jalankan lewat web server (mis. python3 -m http.server).`);
+        // Usually because the page was opened via file:// — the browser blocks fetch().
+        renderError(`${err.message}. Serve it over a web server (e.g. python3 -m http.server).`);
     }
 }
 

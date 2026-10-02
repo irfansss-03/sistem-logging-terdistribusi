@@ -1,77 +1,79 @@
 <div align="center">
 
-# 🛡️ Sistem Logging Terdistribusi
+# 🛡️ Distributed Logging System
 
-### untuk Deteksi Serangan Jaringan
+### for Network Attack Detection
 
-**Sistem pencatatan log terdistribusi berbasis REST API, Hadoop MapReduce, dan integritas data SHA-256 — untuk mendeteksi percobaan login mencurigakan (FTP/SSH/Telnet) di lingkungan jaringan perusahaan.**
+**A distributed log collection and analysis system built on a Hapi.js REST API, SHA-256 integrity verification, and Hadoop MapReduce — detecting suspicious FTP / SSH / Telnet login attempts across an enterprise network.**
 
 [![Node.js](https://img.shields.io/badge/Node.js-Hapi.js-339933?logo=node.js&logoColor=white)](https://hapi.dev)
 [![Hadoop](https://img.shields.io/badge/Hadoop-MapReduce-66CCFF?logo=apachehadoop&logoColor=black)](https://hadoop.apache.org)
 [![Python](https://img.shields.io/badge/Python-3.x-3776AB?logo=python&logoColor=white)](https://www.python.org)
-[![SHA-256](https://img.shields.io/badge/Integritas-SHA--256-8A2BE2)](https://en.wikipedia.org/wiki/SHA-2)
+[![SHA-256](https://img.shields.io/badge/Integrity-SHA--256-8A2BE2)](https://en.wikipedia.org/wiki/SHA-2)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 </div>
 
 ---
 
-## 📑 Daftar Isi
+## 📑 Table of Contents
 
-- [Tentang Proyek](#-tentang-proyek)
-- [Fitur Utama](#-fitur-utama)
-- [Alur Sistem](#-alur-sistem)
-- [Hasil](#-hasil)
-- [Teknologi](#-teknologi)
-- [Struktur Repositori](#-struktur-repositori)
-- [Cara Menjalankan](#-cara-menjalankan)
-- [Referensi API](#-referensi-api)
-- [Keputusan Desain](#-keputusan-desain)
-- [Keterbatasan yang Diketahui](#-keterbatasan-yang-diketahui)
-- [Tim](#-tim)
-
----
-
-## 📖 Tentang Proyek
-
-Setiap PC/laptop di lingkungan perusahaan menjalankan program Python yang mencatat riwayat login pada layanan **FTP, SSH, dan Telnet**, lalu mengirimkannya ke server melalui **REST API**. Setiap payload ditandatangani dengan **SHA-256** di sisi klien dan diverifikasi ulang di sisi server, sehingga log yang dimodifikasi di tengah jalan akan ditolak.
-
-Log yang lolos verifikasi disimpan di server, kemudian diproses secara **terdistribusi** menggunakan **Hadoop MapReduce** untuk mengagregasi jumlah login gagal dan berhasil. Hasil agregasi ditampilkan pada **dashboard web** lokal di server, lengkap dengan notifikasi peringatan bila terdeteksi indikasi serangan.
-
-> **Tujuan:** menyediakan visibilitas terpusat terhadap aktivitas login di banyak mesin, dengan jaminan bahwa data log tidak dapat diubah tanpa terdeteksi.
+- [About](#-about)
+- [Key Features](#-key-features)
+- [System Flow](#-system-flow)
+- [Results](#-results)
+- [Tech Stack](#-tech-stack)
+- [Repository Structure](#-repository-structure)
+- [Getting Started](#-getting-started)
+- [API Reference](#-api-reference)
+- [Design Decisions](#-design-decisions)
+- [Known Limitations](#-known-limitations)
+- [Authors](#-authors)
 
 ---
 
-## ✨ Fitur Utama
+## 📖 About
 
-- **Integritas log dengan SHA-256** — setiap log ditandatangani di klien dan diverifikasi ulang di server; payload yang dimodifikasi ditolak dengan HTTP 403.
-- **Agen klien lintas platform** — membaca `/var/log/auth.log` di Linux (pola `sshd`, `vsftpd`, `proftpd`) dan Security Event Log di Windows (4625/4624) via `wevtutil`. Hanya butuh Python 3, tanpa `pip install`.
-- **Anti-duplikat & store-and-forward** — posisi baca disimpan di state file, sehingga `cron` tidak mengirim ulang log yang sama; bila server mati, event diantrekan dan dikirim otomatis saat server pulih.
-- **Pemrosesan terdistribusi** — Hadoop Streaming (mapper/reducer Python) mengagregasi `failed_login` / `successful_login`.
-- **Dashboard pemantauan** — timeline serangan, top sumber penyerang, statistik log, dan activity log; seluruh angkanya dihitung dari data nyata dan disegarkan tiap 15 detik.
-- **Notifikasi otomatis** — `notifikasi.py` memberi peringatan saat ambang login gagal terlampaui.
-- **Teruji end-to-end** — diuji dengan simulasi dua pola trafik (pengguna sah + dua penyerang brute force) selama 5 menit; lihat [Hasil](#-hasil).
+Every PC/laptop in the enterprise runs a **Python agent** that records login history for **FTP, SSH, and Telnet** services and ships it to a central server over a **REST API**. Each payload is signed with **SHA-256** on the client and re-verified on the server, so any log tampered with in transit is rejected outright.
+
+Verified logs are persisted on the server and then processed in a **distributed** fashion using **Hadoop MapReduce** to aggregate failed and successful login counts. The aggregated results are presented on a local **web dashboard**, complete with alert notifications when attack indicators appear.
+
+> **Goal:** provide centralised visibility into login activity across many machines, with a guarantee that log data cannot be altered undetected.
+
+> 📐 **Deep dive:** see **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for the full component breakdown, data model, sequence diagrams, integrity-verification flow, failure-mode analysis, and security considerations.
 
 ---
 
-## 🏗️ Alur Sistem
+## ✨ Key Features
+
+- **SHA-256 log integrity** — every log is signed on the client and re-verified on the server; tampered payloads are rejected with `HTTP 403`.
+- **Cross-platform client agent** — reads `/var/log/auth.log` on Linux (`sshd`, `vsftpd`, `proftpd` patterns) and the Windows Security Event Log (4625/4624) via `wevtutil`. Requires only Python 3, no `pip install`.
+- **Deduplication & store-and-forward** — the read offset is persisted in a state file so `cron` never re-sends the same log; if the server is down, events are queued and flushed automatically once it recovers.
+- **Distributed processing** — Hadoop Streaming (Python mapper/reducer) aggregates `failed_login` / `successful_login` counts.
+- **Monitoring dashboard** — attack timeline, top attack sources, log statistics, and a live activity log; every figure is computed from real data and refreshed every 15 seconds.
+- **Automatic alerting** — `notifikasi.py` raises a warning once the failed-login threshold is crossed.
+- **Verified end-to-end** — tested with a 5-minute simulation of two traffic patterns (a legitimate user plus two brute-force attackers); see [Results](#-results).
+
+---
+
+## 🏗️ System Flow
 
 ```mermaid
 flowchart LR
-    subgraph CLIENT["💻 Klien (Windows / Debian)"]
-        A["Program Python<br/>baca history login<br/>FTP · SSH · Telnet"]
-        B["Hitung hash SHA-256"]
-        C["crontab -e<br/>(kirim berkala)"]
+    subgraph CLIENT["💻 Client (Windows / Debian)"]
+        A["Python agent<br/>reads login history<br/>FTP · SSH · Telnet"]
+        B["Compute SHA-256 hash"]
+        C["crontab -e<br/>(periodic send)"]
         A --> B --> C
     end
 
     subgraph SERVER["🖥️ Server"]
         D["REST API<br/>Hapi.js :3000"]
-        E["Verifikasi SHA-256"]
+        E["SHA-256 verification"]
         F[("logs.txt")]
         G["Hadoop MapReduce<br/>mapper.py → reducer.py"]
         H[("hasil.txt")]
-        I["Dashboard Web<br/>index.html"]
+        I["Web Dashboard<br/>index.html"]
         J["notifikasi.py"]
         D --> E --> F --> G --> H
         H --> I
@@ -81,202 +83,203 @@ flowchart LR
     C -->|"POST /logs"| D
 ```
 
-**Penjelasan alur:**
+**How it works:**
 
-1. **Klien** — program Python mencatat history login, menghitung hash SHA-256 dari `source|message|timestamp`, lalu mengirimnya ke server. Pengiriman dijadwalkan otomatis lewat `crontab -e`.
-2. **REST API** — server Hapi.js menerima `POST /logs`, menghitung ulang hash, dan membandingkannya. Jika tidak cocok → **HTTP 403** (data dianggap dimodifikasi). Jika valid → disimpan ke `logs.txt`.
-3. **MapReduce** — job Hadoop Streaming membaca `logs.txt`, `mapper.py` mengklasifikasikan setiap log menjadi `failed_login` / `successful_login`, lalu `reducer.py` menjumlahkannya. Output disimpan ke `hasil.txt`.
-4. **Monitoring** — dashboard web membaca `hasil.txt` (agregat MapReduce) dan `logs.txt` (log mentah), lalu menghitung seluruh metriknya sendiri; `notifikasi.py` mencetak peringatan bila ambang batas terlampaui.
-
----
-
-## 🖼️ Hasil
-
-![Dashboard monitoring](docs/screenshots/dashboard.png)
-
-Seluruh angka pada dashboard dihitung dari data nyata — `failed_login` / `successful_login` dari
-`hasil.txt`, sedangkan timeline, top sumber serangan, dan statistik log dihitung langsung dari
-`logs.txt`. Tidak ada nilai statis atau tiruan.
-
-| Tangkapan layar | Isi |
-| :--- | :--- |
-| `docs/screenshots/dashboard.png` | Dashboard monitoring (data contoh otentik) |
-| `docs/screenshots/dashboard-simulasi.png` | Dashboard saat **uji simulasi 5 menit** — lihat di bawah |
-| `docs/screenshots/screenshot-1.png` | Tampilan dashboard saat pengujian tim |
-| `docs/screenshots/screenshot-2.png` | Respons `GET /logs` dari REST API |
-| `docs/screenshots/screenshot-3.png` | Output MapReduce di HDFS (`part-00000`) |
-
-### Uji simulasi 5 menit
-
-Sistem pernah diuji dengan dua pola trafik yang dijalankan bersamaan selama 5 menit:
-
-| Aktor | Pola |
-| :--- | :--- |
-| Pengguna sah (`sirpann`) | Login berhasil tiap ~18 s, sesekali gagal karena salah password |
-| Penyerang `203.0.113.45` | Brute force `root` — burst 4–7 percobaan gagal tiap ~45 s |
-| Penyerang `198.51.100.23` | Brute force `admin` — burst 2–4 percobaan gagal tiap ~65 s |
-
-**Hasil:** 82 log masuk (65 gagal, 17 berhasil — rasio 79 %), threat level **CRITICAL**.
-Rantai data terverifikasi utuh: 82 baris di `logs.txt` = 82 dari `GET /logs` = 65 + 17 di
-`hasil.txt`, dengan antrean klien tersisa 0 (tidak ada log hilang maupun ganda).
-
-> Uji ini juga memunculkan satu temuan: panel *Ringkasan Deteksi* (dari `hasil.txt`) dan
-> *Statistik Log* (dari `logs.txt`) sempat saling bertentangan karena `hasil.txt` baru diperbarui
-> ketika job MapReduce dijalankan. Detailnya ada di bagian [Keterbatasan](#-keterbatasan-yang-diketahui).
+1. **Client** — a Python agent reads login history, computes the SHA-256 hash of `source|message|timestamp`, and posts it to the server. Sending is scheduled automatically via `crontab -e`.
+2. **REST API** — the Hapi.js server receives `POST /logs`, recomputes the hash, and compares it. On mismatch → **HTTP 403** (the data is treated as tampered). On match → the entry is appended to `logs.txt`.
+3. **MapReduce** — a Hadoop Streaming job reads `logs.txt`; `mapper.py` classifies each line as `failed_login` / `successful_login` and `reducer.py` sums them. The output is written to `hasil.txt`.
+4. **Monitoring** — the web dashboard reads `hasil.txt` (MapReduce aggregate) and `logs.txt` (raw logs) and derives all of its metrics client-side; `notifikasi.py` prints an alert when the threshold is exceeded.
 
 ---
 
-## 🧰 Teknologi
+## 🖼️ Results
 
-| Lapisan | Teknologi |
+![Monitoring dashboard](docs/screenshots/dashboard.png)
+
+Every figure on the dashboard is derived from real data — `failed_login` / `successful_login` come from
+`hasil.txt`, while the timeline, top attack sources, and log statistics are computed directly from
+`logs.txt`. There are no static or placeholder values.
+
+| Screenshot | Contents |
+| :--- | :--- |
+| `docs/screenshots/dashboard.png` | Monitoring dashboard (authentic sample data) |
+| `docs/screenshots/dashboard-simulasi.png` | Dashboard during the **5-minute simulation run** — see below |
+| `docs/screenshots/screenshot-1.png` | Dashboard view captured by the team during testing |
+| `docs/screenshots/screenshot-2.png` | `GET /logs` response from the REST API |
+| `docs/screenshots/screenshot-3.png` | MapReduce output in HDFS (`part-00000`) |
+
+### 5-minute simulation run
+
+The system was exercised with two concurrent traffic patterns over 5 minutes:
+
+| Actor | Pattern |
+| :--- | :--- |
+| Legitimate user (`sirpann`) | Successful login every ~18 s, occasionally failing on a mistyped password |
+| Attacker `203.0.113.45` | Brute force against `root` — bursts of 4–7 failed attempts every ~45 s |
+| Attacker `198.51.100.23` | Brute force against `admin` — bursts of 2–4 failed attempts every ~65 s |
+
+**Result:** 82 logs ingested (65 failed, 17 successful — a 79 % failure ratio), threat level **CRITICAL**.
+The data chain was verified end to end: 82 lines in `logs.txt` = 82 from `GET /logs` = 65 + 17 in
+`hasil.txt`, with 0 items left in the client queue (nothing lost, nothing duplicated).
+
+> This run also surfaced one finding: the *Detection Summary* panel (from `hasil.txt`) and the
+> *Log Statistics* panel (from `logs.txt`) briefly disagreed, because `hasil.txt` is only refreshed
+> when the MapReduce job runs. See [Known Limitations](#-known-limitations) for details.
+
+---
+
+## 🧰 Tech Stack
+
+| Layer | Technology |
 | :--- | :--- |
 | REST API | **Node.js** + **Hapi.js** (`@hapi/hapi`) |
-| ID unik log | **nanoid** |
-| Integritas data | **SHA-256** (`crypto` bawaan Node.js) |
-| Penyimpanan log | File **JSON Lines** (`logs.txt`) |
-| Pemrosesan terdistribusi | **Hadoop Streaming** (MapReduce) |
-| Bahasa pemrosesan | **Python 3** (`mapper.py`, `reducer.py`, `notifikasi.py`) |
-| Antarmuka monitoring | **HTML + CSS + JavaScript** (vanilla, tanpa framework) |
-| Penjadwalan | **cron** (`crontab -e`) di sisi klien & server |
+| Log ID generation | **nanoid** |
+| Data integrity | **SHA-256** (Node.js built-in `crypto`) |
+| Log storage | **JSON Lines** file (`logs.txt`) |
+| Distributed processing | **Hadoop Streaming** (MapReduce) |
+| Processing language | **Python 3** (`mapper.py`, `reducer.py`, `notifikasi.py`, `client_logger.py`) |
+| Monitoring UI | **HTML + CSS + JavaScript** (vanilla, no framework) |
+| Scheduling | **cron** (`crontab -e`) on both client and server |
 
 ---
 
-## 📂 Struktur Repositori
+## 📂 Repository Structure
 
 ```
 sistem-logging-terdistribusi/
 ├── client/
-│   └── client_logger.py          # Agen klien: baca log login → hash SHA-256 → POST /logs
-├── src/                          # Kode utama
+│   └── client_logger.py          # Client agent: read login logs → SHA-256 → POST /logs
+├── src/                          # Core application
 │   ├── server.js                 # REST API (Hapi.js, port 3000)
-│   ├── index.html                # Dashboard monitoring
-│   ├── style.css                 # Styling dashboard
-│   ├── mapper.py                 # Map: klasifikasi jenis login
-│   ├── reducer.py                # Reduce: agregasi jumlah per jenis
-│   ├── notifikasi.py             # Peringatan berdasarkan hasil agregasi
-│   ├── run_mapreduce.sh          # Upload ke HDFS + jalankan job Hadoop
-│   ├── package.json              # Dependensi Node.js
+│   ├── index.html                # Monitoring dashboard
+│   ├── style.css                 # Dashboard styling
+│   ├── mapper.py                 # Map: classify login type
+│   ├── reducer.py                # Reduce: aggregate counts per type
+│   ├── notifikasi.py             # Alerting based on the aggregate
+│   ├── run_mapreduce.sh          # Upload to HDFS + run the Hadoop job
+│   ├── package.json              # Node.js dependencies
 │   ├── package-lock.json
-│   ├── logs.txt                  # Contoh data log (JSON Lines)
-│   └── hasil.txt                 # Contoh output MapReduce
+│   ├── logs.txt                  # Sample log data (JSON Lines)
+│   └── hasil.txt                 # Sample MapReduce output
 ├── docs/
-│   ├── deskripsi-singkat.docx    # Deskripsi & alur proyek
+│   ├── ARCHITECTURE.md           # Architecture deep dive
+│   ├── deskripsi-singkat.docx    # Project description & flow
 │   ├── langkah-pengerjaan-server.docx
-│   ├── laporan-proyek.pdf        # Laporan lengkap
-│   ├── laporan-presentasi.pdf    # Laporan presentasi
+│   ├── laporan-proyek.pdf        # Full report
+│   ├── laporan-presentasi.pdf    # Presentation report
 │   ├── presentasi-sistem-logging.pptx
-│   ├── topologi-sistem.png       # Diagram topologi
-│   └── screenshots/              # Tangkapan layar dashboard & hasil pengujian
+│   ├── topologi-sistem.png       # Topology diagram
+│   └── screenshots/              # Dashboard & test-result screenshots
 ├── media/
-│   └── demo-sistem-logging.mp4   # Video demo
-├── drafts/                       # Histori pengembangan (21 iterasi UI + dashboard lama)
+│   └── demo-sistem-logging.mp4   # Demo video
+├── drafts/                       # Development history (21 UI iterations + previous dashboard)
 └── release/
-    └── PROJECT-sistem-logging.zip   # Paket submission final
+    └── PROJECT-sistem-logging.zip   # Final submission package
 ```
 
-> **Catatan:** `logs.txt` dan `hasil.txt` sengaja diletakkan di dalam `src/` karena `server.js`
-> menulis ke `logs.txt` dan `index.html` membaca `hasil.txt` melalui path **relatif**. Memindahkannya
-> ke folder lain akan memutus alur program tanpa perubahan kode.
+> **Note:** `logs.txt` and `hasil.txt` intentionally live inside `src/` because `server.js` writes to
+> `logs.txt` and `index.html` reads `hasil.txt` through **relative** paths. Moving them elsewhere
+> would break the program without a code change.
 
 ---
 
-## 🚀 Cara Menjalankan
+## 🚀 Getting Started
 
-### Prasyarat
+### Prerequisites
 
 - **Node.js** & **npm**
 - **Python 3**
-- **Hadoop** (untuk menjalankan MapReduce) — opsional bila hanya ingin mencoba REST API & dashboard
+- **Hadoop** (for the MapReduce job) — optional if you only want to try the REST API and dashboard
 
-### 1. Jalankan REST API
+### 1. Run the REST API
 
 ```bash
 cd src
-npm install          # memasang @hapi/hapi dan nanoid
-node server.js       # server berjalan di http://localhost:3000
+npm install          # installs @hapi/hapi and nanoid
+node server.js       # server listens on http://localhost:3000
 ```
 
-### 2. Jalankan Log Collector Client
+### 2. Run the Log Collector Client
 
-Jalankan di setiap PC yang ingin dipantau. Klien hanya butuh **Python 3** (tanpa `pip install`).
+Run this on every machine you want to monitor. The client needs only **Python 3** (no `pip install`).
 
 ```bash
-# Uji coba dulu tanpa mengirim apa pun
+# Dry run first — sends nothing
 python3 client/client_logger.py --dry-run
 
-# Kirim log baru ke server
-LOG_SERVER_URL=http://<IP-SERVER>:3000/logs \
+# Send new logs to the server
+LOG_SERVER_URL=http://<SERVER-IP>:3000/logs \
 CLIENT_SOURCE=client-debian \
 AUTH_LOG=/var/log/auth.log \
 python3 client/client_logger.py
 ```
 
-Agar berjalan otomatis, daftarkan di `crontab -e`:
+To run it automatically, register it in `crontab -e`:
 
 ```cron
 * * * * * /usr/bin/python3 /opt/sistem-logging/client/client_logger.py >> /var/log/log-client.log 2>&1
 ```
 
-**Cara kerja klien:**
+**How the client works:**
 
-| Tahap | Detail |
+| Stage | Detail |
 | :--- | :--- |
-| Baca log | Linux: `/var/log/auth.log` (pola `sshd` & `vsftpd`). Windows: Security Event Log (4625 gagal / 4624 berhasil) via `wevtutil`. |
-| Susun pesan | `Log: Failed login attempt via SSH from <ip>` · `Log: Successful login attempt on Windows` |
-| Tandatangani | `hash = SHA-256(source\|message\|timestamp)` — diverifikasi ulang oleh server. |
-| Kirim | `POST /logs` dengan payload JSON. |
-| Anti-duplikat | Offset baca disimpan di `.client_state.json`, sehingga cron tidak mengirim ulang log yang sama. |
-| Store-and-forward | Bila server mati, event disimpan di antrean dalam state file dan dikirim saat server kembali hidup — **log tidak hilang**. |
+| Read logs | Linux: `/var/log/auth.log` (`sshd` & `vsftpd` patterns). Windows: Security Event Log (4625 failed / 4624 successful) via `wevtutil`. |
+| Build message | `Log: Failed login attempt via SSH from <ip>` · `Log: Successful login attempt on Windows` |
+| Sign | `hash = SHA-256(source\|message\|timestamp)` — re-verified by the server. |
+| Send | `POST /logs` with a JSON payload. |
+| Deduplication | The read offset is stored in `.client_state.json`, so cron never re-sends the same log. |
+| Store-and-forward | If the server is down, events are queued in the state file and sent once it is back up — **no log is lost**. |
 
-> **Alternatif manual** — mengirim satu log lewat `curl`:
+> **Manual alternative** — send a single log with `curl`:
 >
 > ```bash
-> # Hash = SHA-256 dari "source|message|timestamp"
+> # Hash = SHA-256 of "source|message|timestamp"
 > curl -X POST http://localhost:3000/logs \
 >   -H "Content-Type: application/json" \
 >   -d '{"source":"client-windows","message":"Failed login attempt on Windows","timestamp":"2025-06-12T17:14:00","hash":"<sha256>"}'
 > ```
 
-### 3. Jalankan MapReduce
+### 3. Run MapReduce
 
 ```bash
 cd src
-bash run_mapreduce.sh      # upload logs.txt ke HDFS, jalankan job, simpan ke hasil.txt
+bash run_mapreduce.sh      # upload logs.txt to HDFS, run the job, write hasil.txt
 ```
 
-> Sesuaikan path `hadoop-streaming-*.jar` di dalam `run_mapreduce.sh` dengan lokasi Hadoop di mesin Anda.
+> Adjust the `hadoop-streaming-*.jar` path inside `run_mapreduce.sh` to match your Hadoop installation.
 
-### 4. Jalankan notifikasi
+### 4. Run the notifier
 
 ```bash
 cd src
-python3 notifikasi.py      # membaca hasil.txt dan mencetak peringatan
+python3 notifikasi.py      # reads hasil.txt and prints alerts
 ```
 
-### 5. Buka dashboard
+### 5. Open the dashboard
 
-Buka `src/index.html` melalui web server lokal (bukan `file://`), misalnya:
+Serve `src/index.html` over a local web server (not `file://`), for example:
 
 ```bash
 cd src
 python3 -m http.server 8080
-# lalu akses http://localhost:8080
+# then open http://localhost:8080
 ```
 
-Dashboard membaca `hasil.txt` dan `logs.txt` dari folder yang sama melalui `fetch()`, lalu menghitung
-seluruh metriknya di sisi klien dan menyegarkan tampilan setiap 15 detik. Karena itu ia **harus**
-diakses lewat web server — membuka berkasnya langsung dengan `file://` akan memblokir `fetch()`.
+The dashboard reads `hasil.txt` and `logs.txt` from the same folder via `fetch()`, derives every metric
+client-side, and refreshes every 15 seconds. It therefore **must** be served over HTTP — opening the
+file directly with `file://` will make the browser block `fetch()`.
 
 ---
 
-## 🔌 Referensi API
+## 🔌 API Reference
 
-| Method | Endpoint | Body | Respons |
+| Method | Endpoint | Body | Response |
 | :--- | :--- | :--- | :--- |
-| `POST` | `/logs` | `source`, `message`, `timestamp`, `hash` | `201` sukses · `400` data tidak lengkap · `403` hash tidak valid |
-| `GET` | `/logs` | — | `200` array seluruh log dari `logs.txt` |
+| `POST` | `/logs` | `source`, `message`, `timestamp`, `hash` | `201` success · `400` incomplete data · `403` invalid hash |
+| `GET` | `/logs` | — | `200` array of every log in `logs.txt` |
 
-**Skema verifikasi integritas:**
+**Integrity verification scheme:**
 
 ```
 dataString = `${source}|${message}|${timestamp}`
@@ -286,42 +289,46 @@ valid      = (serverHash === hash)
 
 ---
 
-## 🧠 Keputusan Desain
+## 🧠 Design Decisions
 
-| # | Keputusan | Alasan | Trade-off yang diterima |
+| # | Decision | Rationale | Trade-off accepted |
 | :-- | :--- | :--- | :--- |
-| 1 | **Hash SHA-256 di klien, diverifikasi ulang di server** | Deteksi modifikasi log saat transit tanpa perlu PKI/TLS yang kompleks. | Menjamin *integritas*, bukan *kerahasiaan* — isi log masih terbaca di jaringan. |
-| 2 | **Hapi.js sebagai framework REST API** | Validasi payload bawaan, struktur route yang jelas, ringan. | Menambah satu dependensi; alternatif `http` bawaan Node.js lebih minimal. |
-| 3 | **Log disimpan sebagai file JSON Lines (`logs.txt`)** | Mudah diaudit manusia, mudah dibaca MapReduce baris-per-baris, tanpa server database. | Tidak ada indeks/query; tidak cocok untuk volume sangat besar atau akses konkuren tinggi. |
-| 4 | **Hadoop Streaming dengan Python** | Tim sudah familier Python; tidak perlu menulis Java. | Overhead startup JVM per job; berlebihan untuk data kecil. |
-| 5 | **Penjadwalan via `cron`** | Tersedia di semua distro Linux, tanpa daemon tambahan. | Tidak ada retry/observability bawaan bila job gagal. |
-| 6 | **Dashboard membaca `hasil.txt` langsung** | Menghilangkan kebutuhan menyajikan API agregasi tambahan. | Dashboard harus di-serve lewat web server; tidak bisa dibuka via `file://`. |
+| 1 | **SHA-256 hashed on the client, re-verified on the server** | Detects log tampering in transit without needing complex PKI/TLS. | Guarantees *integrity*, not *confidentiality* — log contents are still readable on the wire. |
+| 2 | **Hapi.js as the REST API framework** | Built-in payload validation, clear route structure, lightweight. | Adds one dependency; Node's built-in `http` would be more minimal. |
+| 3 | **Logs stored as a JSON Lines file (`logs.txt`)** | Easy for humans to audit, easy for MapReduce to read line by line, no database server needed. | No indexing or querying; unsuitable for very large volumes or high-concurrency access. |
+| 4 | **Hadoop Streaming with Python** | The team was already fluent in Python; no Java needed. | JVM startup overhead per job; overkill for small datasets. |
+| 5 | **Scheduling via `cron`** | Available on every Linux distribution, no extra daemon. | No built-in retry or observability when a job fails. |
+| 6 | **Dashboard reads `hasil.txt` directly** | Removes the need to expose an additional aggregation API. | The dashboard must be served over a web server; it cannot be opened via `file://`. |
+| 7 | **Client-side metric computation** | Keeps the server simple — no extra endpoints, no caching layer. | Every open dashboard re-parses both files; acceptable at this data volume. |
+| 8 | **Client state file for offset + queue** | Makes cron runs idempotent and lets the agent survive server outages without losing data. | State is per-machine and must be excluded from version control. |
 
 ---
 
-## ⚠️ Keterbatasan yang Diketahui
+## ⚠️ Known Limitations
 
-1. **Kode klien asli tidak ditemukan — `client/client_logger.py` adalah hasil rekonstruksi.** Dokumen, presentasi, dan video proyek menjelaskan adanya program Python di tiap PC klien, tetapi **tidak ada satu pun berkas kode klien** di arsip proyek, laporan PDF, maupun video demo. Klien dalam repositori ini direkonstruksi dari bukti yang tersisa (respons `GET /logs`, contoh `logs.txt`, dan skema hash di `server.js`), lalu diuji end-to-end terhadap server asli. Format pesan dan skema hash dibuat identik dengan data historis, namun implementasi aslinya bisa berbeda detail.
-2. **`run_mapreduce.sh` memuat path absolut** (`/home/sirpann/Downloads/hadoop/...`). Skrip harus disunting sebelum dijalankan di mesin lain.
-3. **Tidak ada autentikasi pada REST API.** Siapa pun yang menjangkau port 3000 dapat mengirim log (asal hash-nya benar) atau membaca seluruh log lewat `GET /logs`.
-4. **`logs.txt` tumbuh tanpa rotasi.** Belum ada pemangkasan atau pengarsipan otomatis, sehingga file akan terus membesar.
-5. **Ringkasan Deteksi (dari `hasil.txt`) dan Statistik Log (dari `logs.txt`) bisa tidak sinkron.** `hasil.txt` hanya diperbarui saat job MapReduce dijalankan, sedangkan `logs.txt` bertambah real-time. Saat uji demo 5 menit, dashboard sempat menampilkan *Ringkasan Deteksi* "9 log" (dari `hasil.txt` yang basi) berdampingan dengan *Statistik Log* "82 entri" (dari `logs.txt` yang live) — dua panel saling bertentangan sampai MapReduce dijalankan ulang. Solusi jangka panjangnya adalah menjadwalkan MapReduce lewat `cron` dan menampilkan waktu pembaruan `hasil.txt` secara eksplisit.
-6. **Ambang notifikasi masih statis.** `notifikasi.py` memakai aturan tetap (1 gagal = peringatan, 3+ gagal = alarm) tanpa mempertimbangkan jendela waktu atau basis normal (baseline), sehingga rentan false positive.
-7. **`drafts/` berisi 21 iterasi UI** yang disimpan sebagai histori pengembangan — bukan kode yang dipakai. Versi aktif adalah `src/index.html`. Termasuk di dalamnya `index-asli-final.html` dan `dashboard-lama.png`, yaitu versi dashboard sebelum dirombak agar seluruh panelnya memakai data nyata.
-8. **Ada ketidaksesuaian antara dokumentasi dan implementasi.** Presentasi menyebut endpoint `/receive-logs` (implementasi: `/logs`) dan notifikasi ">10 gagal login dalam 1 menit" (implementasi: ambang statis 1 dan 3, tanpa jendela waktu). Dokumen asli dibiarkan apa adanya sebagai arsip; README ini mengikuti implementasi.
-9. **Dashboard menghitung metriknya di sisi klien.** Ia membaca `hasil.txt` dan `logs.txt` langsung sebagai berkas, bukan lewat endpoint API. Konsekuensinya dashboard harus di-serve melalui web server dan berada satu folder dengan kedua berkas tersebut.
+1. **The original client code was not found — `client/client_logger.py` is a reconstruction.** The project documents, presentation, and video all describe a Python program on each client PC, but **no client source file exists** in the project archive, the PDF reports, or the demo video. The client in this repository was reconstructed from the surviving evidence (the `GET /logs` response, the sample `logs.txt`, and the hashing scheme in `server.js`) and then tested end to end against the real server. The message format and hash scheme match the historical data, but the original implementation may differ in detail.
+2. **`run_mapreduce.sh` contains absolute paths** (`/home/sirpann/Downloads/hadoop/...`). The script must be edited before running on another machine.
+3. **The REST API has no authentication.** Anyone who can reach port 3000 can submit logs (as long as the hash is correct) or read every log via `GET /logs`.
+4. **`logs.txt` grows without rotation.** There is no automatic pruning or archiving, so the file keeps growing.
+5. **Detection Summary (from `hasil.txt`) and Log Statistics (from `logs.txt`) can disagree.** `hasil.txt` is only refreshed when the MapReduce job runs, while `logs.txt` grows in real time. During the 5-minute demo the dashboard briefly showed a *Detection Summary* of "9 logs" (from a stale `hasil.txt`) next to *Log Statistics* of "82 entries" (from live `logs.txt`) — two panels contradicting each other until MapReduce was re-run. The long-term fix is to schedule MapReduce via `cron` and show the `hasil.txt` refresh time explicitly.
+6. **The notification threshold is static, and `failed == 2` is silent.** `notifikasi.py` branches on `failed == 1` and `elif failed >= 3`, with no time window or baseline. Exactly two failures satisfy neither condition, so they produce **no output at all** — a verified gap, not a theoretical one. It is also prone to false positives since it never compares against normal activity.
+7. **`drafts/` holds 21 UI iterations** kept as development history — not the code in use. The active version is `src/index.html`. It also includes `index-asli-final.html` and `dashboard-lama.png`, i.e. the dashboard as it looked before every panel was rewired to use real data.
+8. **Documentation and implementation disagree.** The presentation mentions a `/receive-logs` endpoint (implementation: `/logs`) and an alert rule of ">10 failed logins in 1 minute" (implementation: static thresholds of 1 and 3, with no time window). The original documents are left untouched as an archive; this README follows the implementation.
+9. **The dashboard computes its metrics client-side.** It reads `hasil.txt` and `logs.txt` as files rather than through an API endpoint. Consequently it must be served over a web server and must sit in the same folder as both files.
 
 ---
 
-## 👥 Tim
+## 👥 Authors
 
-| Nama | NIM |
+| Name | NIM |
 | :--- | :--- |
 | Achmed Nazriel L. | 2423600003 |
 | Syafan Aditya I. | 2423600004 |
 
-**Praktikum Sistem Terdistribusi**
+GitHub: [@irfansss-03](https://github.com/irfansss-03) · [@Nazriellesmono](https://github.com/Nazriellesmono)
+
+**Distributed Systems Practicum**
 
 ---
 
-<div align="center"><sub>Dokumentasi lengkap tersedia di <code>docs/</code> · Demo video di <code>media/</code></sub></div>
+<div align="center"><sub>Full documentation in <code>docs/</code> · Demo video in <code>media/</code></sub></div>
