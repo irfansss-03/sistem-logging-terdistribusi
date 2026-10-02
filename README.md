@@ -320,12 +320,7 @@ valid      = (serverHash === hash)
 
 ## 👥 Authors
 
-| Name | NIM |
-| :--- | :--- |
-| Achmed Nazriel L. | 2423600003 |
-| Syafan Aditya I. | 2423600004 |
-
-GitHub: [@irfansss-03](https://github.com/irfansss-03) · [@Nazriellesmono](https://github.com/Nazriellesmono)
+[@irfansss-03](https://github.com/irfansss-03) · [@Nazriellesmono](https://github.com/Nazriellesmono)
 
 **Distributed Systems Practicum**
 
