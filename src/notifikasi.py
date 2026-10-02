@@ -10,10 +10,10 @@ for line in lines:
     elif "successful_login" in line:
         success = int(line.split(":")[1])
 
-if failed == 1:
-    print("⚠️ PERINGATAN: 1 login gagal terdeteksi")
-elif failed >= 3:
-    print("🚨 WARNING: 3+ login gagal terdeteksi!")
+if failed >= 3:
+    print(f"🚨 ALERT: {failed} failed login attempts detected!")
+elif failed >= 1:
+    print(f"⚠️  WARNING: {failed} failed login attempt(s) detected")
 
 if success >= 1:
-    print(f"✅ INFO: {success} login berhasil terdeteksi")
+    print(f"✅ INFO: {success} successful login(s) detected")

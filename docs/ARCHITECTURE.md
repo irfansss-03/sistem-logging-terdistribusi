@@ -166,9 +166,9 @@ A Hapi.js server listening on `0.0.0.0:3000` with two routes.
 | `POST /logs` | Validates that `source`, `message`, `hash`, and `timestamp` are all present (else `400`). Recomputes the SHA-256 hash (mismatch → `403`). Assigns a `nanoid()` id, appends the entry to `logs.txt`, and returns `201`. |
 | `GET /logs` | Reads `logs.txt`, splits on newlines, `JSON.parse`es each line, and returns the array (`200`). Returns `500` if the file cannot be read. |
 
-> **Implementation note:** `server.js` also declares an in-memory `const logs = []` and pushes each entry
-> into it, but nothing ever reads that array — it is dead code left over from an earlier design. The file
-> is the only real store.
+> **Audit note:** `server.js` originally declared an in-memory `const logs = []` and pushed each entry
+> into it, but nothing ever read that array — dead code left over from an earlier design. It was removed
+> during a code audit, so `logs.txt` is now unambiguously the only store.
 
 ### 4.3 MapReduce Stage
 
@@ -198,7 +198,10 @@ A static page with no build step and no framework.
 
 ### 4.5 Notifier — `src/notifikasi.py`
 
-Reads `hasil.txt` and prints a warning when the failed count crosses a threshold.
+Reads `hasil.txt` and prints a warning when the failed count crosses a threshold. The original version
+branched on `failed == 1` and `elif failed >= 3`, which meant exactly two failures matched neither
+condition and produced no output at all. A code audit surfaced this; the branching was rewritten so that
+any failure count of one or more raises a warning, escalating to an alarm at three or more.
 
 ---
 
@@ -453,15 +456,18 @@ Documented honestly — each is a direct consequence of the decisions in §10.
 1. **The `403` retry loop never terminates.** A rejected event stays in `pending` forever and is re-sent on every run. A corrupt or permanently-rejected entry therefore generates unbounded retries and log noise. A maximum retry count with dead-lettering would fix it.
 2. **The hash is not stored.** `logs.txt` keeps only `id`, `source`, `message`, and `timestamp`. Integrity is provable *at ingest time* but cannot be re-verified later — so the file is not self-validating once written.
 3. **No deduplication on the server.** If a client crashes after the server accepted a batch but before persisting its offset, the batch is re-sent and counted twice. This inflates the aggregate.
-4. **`failed == 2` produces no notification.** `notifikasi.py` branches on `failed == 1` and `elif failed >= 3`, so exactly two failures fall through both conditions silently.
+4. **The notification thresholds are static.** `notifikasi.py` compares against fixed counts with no time window and no baseline, so it cannot distinguish a burst from ordinary activity and is prone to false positives. *(The original code additionally let exactly two failures fall through both branches silently; that gap was found during a code audit and fixed.)*
 5. **`hasil.txt` is a batch artefact.** It only changes when the MapReduce job runs, so *Detection Summary* can contradict *Log Statistics* until then — observed live during the 5-minute demo (9 vs 82). Scheduling MapReduce via `cron` and displaying the `hasil.txt` modification time would resolve it.
 6. **The dashboard re-parses everything on every refresh.** Both files are fetched and fully processed every 15 seconds per open tab. Fine at this scale; it would not be at millions of lines.
 7. **`logs.txt` is never rotated.** The file grows without bound and is read in full by `GET /logs` on every call, so that endpoint degrades linearly with log volume.
 8. **MapReduce output is not versioned.** `hasil.txt` is overwritten in place; there is no history of previous aggregates.
-9. **`server.js` contains dead code.** An in-memory `logs` array is populated but never read.
-10. **The client's message classifier is substring-based.** `mapper.py` matches on the literal strings `failed` / `successful`; any change to the message wording silently breaks aggregation.
-11. **Only login events are collected.** The agent parses authentication lines only — file access, sudo, and service restarts are out of scope.
-12. **The original client implementation was never recovered.** `client/client_logger.py` is a reconstruction from surviving evidence and may differ from the version the team actually ran.
+9. **The client's message classifier is substring-based.** `mapper.py` matches on the literal strings `failed` / `successful`; any change to the message wording silently breaks aggregation.
+10. **Only login events are collected.** The agent parses authentication lines only — file access, sudo, and service restarts are out of scope.
+11. **The original client implementation was never recovered.** `client/client_logger.py` is a reconstruction from surviving evidence and may differ from the version the team actually ran.
+
+> **Resolved during the code audit:** the notifier's `failed == 2` blind spot and the unused in-memory
+> `logs` array in `server.js` were both found while writing this document and fixed in the code — see
+> §4.2 and §4.5.
 
 ---
 

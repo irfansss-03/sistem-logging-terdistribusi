@@ -3,8 +3,6 @@ const { nanoid } = require('nanoid');
 const crypto = require('crypto');
 const fs = require('fs');
 
-const logs = [];
-
 const init = async () => {
   const server = Hapi.server({ port: 3000, host: '0.0.0.0' });
 
@@ -30,7 +28,6 @@ const init = async () => {
 
       // Simpan log
       const log = { id: nanoid(), source, message, timestamp };
-      logs.push(log);
       fs.appendFileSync('logs.txt', `${JSON.stringify(log)}\n`);
       console.log("Log disimpan:", log);
       return h.response({ status: 'success', data: log }).code(201);
