@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Cybersecurity Defense Center</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            color: #ffffff;
+        }
+
+        /* Binary Rain Effect */
+        .binary-rain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0;
+            animation: fadeInRain 3s 3s forwards;
+        }
+
+        @keyframes fadeInRain {
+            to { opacity: 0.6; }
+        }
+
+        .binary-column {
+            position: absolute;
+            font-family: 'Orbitron', monospace;
+            font-size: 14px;
+            color: #00ff41;
+            animation: rain-fall linear infinite;
+            text-shadow: 0 0 5px #00ff41;
+        }
+
+        @keyframes rain-fall {
+            0% { transform: translateY(-100vh); opacity: 1; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+
+        /* Background Effects */
+        .bg-circuit {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(circle at 20% 50%, rgba(0, 162, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(29, 78, 216, 0.1) 0%, transparent 50%);
+            z-index: -2;
+        }
+
+        /* Main Layout */
+        .main-container {
+            position: relative;
+            z-index: 10;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .title {
+            font-family: 'Orbitron', monospace;
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #00a2ff, #64b5f6, #90caf9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(0, 162, 255, 0.5);
+            margin-bottom: 10px;
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #64b5f6;
+            font-weight: 300;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .dashboard-panel {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(0, 162, 255, 0.3);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            min-height: 350px;
+        }
+
+        .dashboard-panel:hover {
+            border-color: rgba(0, 162, 255, 0.6);
+            box-shadow: 0 0 30px rgba(0, 162, 255, 0.2);
+        }
+
+        .panel-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            color: #00a2ff;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Status Panel */
+        .status-display {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.5rem;
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .stat-item {
+            background: rgba(0, 162, 255, 0.1);
+            border: 1px solid rgba(0, 162, 255, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #64b5f6;
+        }
+
+        /* Network Graph */
+        .network-container {
+            height: 280px;
+            position: relative;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        .network-chart {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .network-bar {
+            position: absolute;
+            background: linear-gradient(45deg, #00a2ff, #64b5f6);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 15px rgba(0, 162, 255, 0.3);
+        }
+
+        .network-bar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 162, 255, 0.5);
+        }
+
+        .network-bar.threat {
+            background: linear-gradient(45deg, #ff4444, #ff6666);
+            box-shadow: 0 4px 15px rgba(255, 68, 68, 0.3);
+        }
+
+        .network-bar.secure {
+            background: linear-gradient(45deg, #00ff88, #44ffaa);
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+        }
+
+        /* Threat Detection */
+        .threat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255, 68, 68, 0.1);
+            border-left: 3px solid #00ff88;
+            border-radius: 5px;
+        }
+
+        .threat-level {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .threat-high { background: #ff4444; }
+        .threat-medium { background: #00a2ff; }
+        .threat-low { background: #00ff88; color: #000; }
+
+        /* Global Map */
+        .world-map {
+            height: 220px;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 500"><rect width="1000" height="500" fill="%23001122"/></svg>') no-repeat center;
+            background-size: contain;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .attack-node {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: #ff4444;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(255, 68, 68, 0.6);
+        }
+
+        .attack-node:hover {
+            transform: scale(1.5);
+            box-shadow: 0 0 25px rgba(255, 68, 68, 0.8);
+        }
+
+        .attack-node::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border: 2px solid #ff4444;
+            border-radius: 50%;
+            animation: pulse-attack 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-attack {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.5); opacity: 0.4; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        .attack-tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Firewall Status */
+        .firewall-rules {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .rule-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            margin: 3px 0;
+            background: rgba(0, 162, 255, 0.1);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .rule-status {
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.8rem;
+        }
+
+        .rule-active { background: #00ff88; color: #000; }
+        .rule-blocked { background: #ff4444; }
+
+        /* Activity Log */
+        .activity-log {
+            max-height: 250px;
+            overflow-y: auto;
+            font-family: 'Orbitron', monospace;
+            font-size: 1rem;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        .log-entry {
+            padding: 10px;
+            margin: 8px 0;
+            border-left: 3px solid #00a2ff;
+            background: rgba(0, 162, 255, 0.1);
+            border-radius: 5px;
+            font-size: 0.95rem;
+        }
+
+        .log-error { 
+            border-left-color: #ff4444; 
+            background: rgba(255, 68, 68, 0.1);
+        }
+        .log-warning { 
+            border-left-color: #ffaa00; 
+            background: rgba(255, 170, 0, 0.1);
+        }
+        .log-success { 
+            border-left-color: #00ff88; 
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        /* Vulnerability Scanner */
+        .vuln-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            margin: 5px 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+        }
+
+        .vuln-score {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .cvss-critical { background: #8B0000; }
+        .cvss-high { background: #ff4444; }
+        .cvss-medium { background: #ffaa00; }
+        .cvss-low { background: #00ff88; color: #000; }
+
+        /* ML Analysis */
+        .ml-prediction {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(45deg, rgba(0, 162, 255, 0.1), rgba(100, 181, 246, 0.1));
+            border-radius: 10px;
+        }
+
+        .prediction-score {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #00a2ff;
+            text-shadow: 0 0 20px rgba(0, 162, 255, 0.5);
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4444, #ffaa00, #00ff88);
+            transition: width 0.5s ease;
+        }
+
+        /* Animations */
+        @keyframes pulse-glow {
+            0%, 100% { text-shadow: 0 0 20px rgba(0, 162, 255, 0.5); }
+            50% { text-shadow: 0 0 30px rgba(0, 162, 255, 0.8); }
+        }
+
+        .loading {
+            color: #ffeb3b;
+            animation: loading-pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes loading-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .title { font-size: 2rem; }
+            .dashboard-grid { 
+                grid-template-columns: 1fr; 
+                gap: 20px;
+            }
+            .dashboard-panel {
+                min-height: 300px;
+                padding: 20px;
+            }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Scrollable container */
+        .main-container {
+            position: relative;
+            z-index: 10;
+            padding: 20px;
+            min-height: 100vh;
+            max-height: 100vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-circuit"></div>
+    <div class="binary-rain" id="binaryRain"></div>
+
+    <div class="main-container">
+        <div class="header">
+            <h1 class="title">ADVANCED CYBERSECURITY DEFENSE CENTER</h1>
+            <p class="subtitle">Sistem Logging Terdistribusi untuk Deteksi Serangan Jaringan</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- System Status -->
+            <div class="dashboard-panel">
+                <div class="panel-title">🛡️ SYSTEM STATUS</div>
+                <div class="status-display" id="systemStatus">
+                    <span class="loading">⚡ INITIALIZING DEFENSE SYSTEMS...</span>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #ff4444;" id="failedCount">0</div>
+                        <div class="stat-label">ATTACKS BLOCKED</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #00ff88;" id="successCount">0</div>
+                        <div class="stat-label">SUCCESSFUL LOGINS</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Network Topology -->
+            <div class="dashboard-panel">
+                <div class="panel-title">📊 NETWORK TRAFFIC ANALYSIS</div>
+                <div class="network-container">
+                    <div class="network-chart" id="networkChart"></div>
+                </div>
+            </div>
+
+            <!-- AI Threat Detection -->
+            <div class="dashboard-panel">
+                <div class="panel-title">🤖 SERVER INFORMATION</div>
+                <div id="threatList">
+                    <div class="threat-item">
+                        <span>192.168.107.163</span>
+                        <span class="threat-level threat-high">IP Server</span>
+                    </div>
+                    <div class="threat-item">
+                        <span>192.168.107.0/24</span>
+                        <span class="threat-level threat-medium">Network</span>
+                    </div>
+                    <div class="threat-item">
+                        <span>Port : 22</span>
+                        <span class="threat-level threat-low">Activate</span>
+                    </div>
+                    <div class="threat-item">
+                        <span>Port : 8080</span>
+                        <span class="threat-level threat-low">Activate</span>
+                    </div>
+                    <div class="threat-item">
+                        <span>Port : 3000</span>
+                        <span class="threat-level threat-low">Activate</span>
+                    </div>
+                    <div class="threat-item">
+                        <span>Port : 9870</span>
+                        <span class="threat-level threat-low">Activate</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Attack Map -->
+            <div class="dashboard-panel">
+                <div class="panel-title">🗺️ GLOBAL ATTACK MAP</div>
+                <div class="world-map" id="worldMap">
+                    <div class="attack-tooltip" id="attackTooltip"></div>
+                </div>
+                <div style="margin-top: 15px; font-size: 1rem; color: #64b5f6;" id="attackStats">
+                    Click on red nodes to view attack details
+                </div>
+            </div>
+
+            <!-- Firewall Defense -->
+            <div class="dashboard-panel">
+                <div class="panel-title">🔥 FIREWALL DEFENSE</div>
+                <div class="firewall-rules">
+                    <div class="rule-item">
+                        <span>Block Malicious IPs</span>
+                        <span class="rule-status rule-active">ACTIVE</span>
+                    </div>
+                    <div class="rule-item">
+                        <span>DDoS Protection</span>
+                        <span class="rule-status rule-active">ACTIVE</span>
+                    </div>
+                    <div class="rule-item">
+                        <span>Intrusion Prevention</span>
+                        <span class="rule-status rule-active">ACTIVE</span>
+                    </div>
+                    <div class="rule-item">
+                        <span>SQL Injection Block</span>
+                        <span class="rule-status rule-blocked">BLOCKED: 247</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Network Statistics -->
+            <div class="dashboard-panel">
+                <div class="panel-title">📊 NETWORK STATISTICS</div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #00a2ff;" id="bandwidth">1.2GB/s</div>
+                        <div class="stat-label">BANDWIDTH</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #90caf9;" id="connections">2,847</div>
+                        <div class="stat-label">ACTIVE CONNECTIONS</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #64b5f6;" id="packets">98.7%</div>
+                        <div class="stat-label">PACKET SUCCESS</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #ffeb3b;" id="latency">12ms</div>
+                        <div class="stat-label">AVG LATENCY</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Log -->
+            <div class="dashboard-panel">
+                <div class="panel-title">📝 ACTIVITY LOG</div>
+                <div class="activity-log" id="activityLog">
+                    <div class="log-entry log-success">[12:34:56] System initialization complete</div>
+                    <div class="log-entry log-warning">[12:35:12] Suspicious activity detected from 192.168.1.100</div>
+                    <div class="log-entry log-error">[12:35:28] Brute force attack blocked</div>
+                    <div class="log-entry">[12:35:45] Firewall rules updated</div>
+                    <div class="log-entry log-success">[12:36:01] Threat neutralized successfully</div>
+                </div>
+            </div>
+
+            <!-- Vulnerability Scanner -->
+            <div class="dashboard-panel">
+                <div class="panel-title">🔍 VULNERABILITY SCANNER</div>
+                <div id="vulnList">
+                    <div class="vuln-item">
+                        <span>CVE-2024-1234: Buffer Overflow</span>
+                        <span class="vuln-score cvss-critical">CRITICAL 9.8</span>
+                    </div>
+                    <div class="vuln-item">
+                        <span>CVE-2024-5678: XSS Vulnerability</span>
+                        <span class="vuln-score cvss-high">HIGH 7.2</span>
+                    </div>
+                    <div class="vuln-item">
+                        <span>CVE-2024-9012: Info Disclosure</span>
+                        <span class="vuln-score cvss-medium">MEDIUM 5.1</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ML Threat Analysis -->
+            <div class="dashboard-panel">
+                <div class="panel-title">🧠 ML THREAT ANALYSIS</div>
+                <div class="ml-prediction">
+                    <div class="prediction-score" id="mlScore">87.3%</div>
+                    <div style="color: #64b5f6; margin: 10px 0;">Security Confidence</div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" style="width: 87.3%"></div>
+                    </div>
+                    <div style="font-size: 0.9rem; color: #90caf9;">
+                        Neural network analyzing 1,247 threat vectors
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Create Binary Rain Effect
+        function createBinaryRain() {
+            const rain = document.getElementById('binaryRain');
+            const columns = Math.floor(window.innerWidth / 20);
+            
+            for (let i = 0; i < columns; i++) {
+                const column = document.createElement('div');
+                column.className = 'binary-column';
+                column.style.left = (i * 20) + 'px';
+                column.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                column.style.animationDelay = Math.random() * 2 + 's';
+                
+                // Generate binary text
+                let binaryText = '';
+                for (let j = 0; j < 50; j++) {
+                    binaryText += Math.random() > 0.5 ? '1' : '0';
+                    if (j % 8 === 7) binaryText += '<br>';
+                }
+                column.innerHTML = binaryText;
+                
+                rain.appendChild(column);
+            }
+        }
+
+        // Create Network Chart (Bar Chart Style)
+        function createNetworkChart() {
+            const container = document.getElementById('networkChart');
+            const data = [
+                { label: 'HTTP Traffic', value: 85, type: 'normal' },
+                { label: 'HTTPS Traffic', value: 92, type: 'secure' },
+                { label: 'Suspicious Packets', value: 15, type: 'threat' },
+                { label: 'Database Queries', value: 78, type: 'normal' },
+                { label: 'Failed Requests', value: 8, type: 'threat' },
+                { label: 'API Calls', value: 65, type: 'secure' }
+            ];
+
+            data.forEach((item, index) => {
+                const bar = document.createElement('div');
+                bar.className = `network-bar ${item.type}`;
+                bar.textContent = item.label;
+                
+                const width = (item.value / 100) * 80 + 15; // Min 15%, max 95%
+                const height = 35;
+                const top = index * 45 + 10;
+                
+                bar.style.width = width + '%';
+                bar.style.height = height + 'px';
+                bar.style.top = top + 'px';
+                bar.style.left = '10px';
+                
+                bar.title = `${item.label}: ${item.value}%`;
+                container.appendChild(bar);
+            });
+        }
+
+        // Create Attack Map with Clickable Nodes
+        function createAttackMap() {
+            const map = document.getElementById('worldMap');
+            const tooltip = document.getElementById('attackTooltip');
+            
+            const attacks = [
+                { x: 15, y: 35, country: 'USA', attacks: 247, ip: '173.252.66.25' },
+                { x: 75, y: 25, country: 'China', attacks: 189, ip: '36.110.228.254' },
+                { x: 55, y: 30, country: 'Russia', attacks: 156, ip: '185.220.101.25' },
+                { x: 85, y: 55, country: 'North Korea', attacks: 89, ip: '175.45.176.10' },
+                { x: 45, y: 45, country: 'Germany', attacks: 45, ip: '217.160.0.112' }
+            ];
+
+            attacks.forEach(attack => {
+                const node = document.createElement('div');
+                node.className = 'attack-node';
+                node.style.left = attack.x + '%';
+                node.style.top = attack.y + '%';
+                
+                node.addEventListener('mouseenter', (e) => {
+                    tooltip.innerHTML = `
+                        <strong>${attack.country}</strong><br>
+                        Attacks: ${attack.attacks}<br>
+                        Source IP: ${attack.ip}<br>
+                        Status: Active Threat
+                    `;
+                    tooltip.style.left = (e.pageX + 10) + 'px';
+                    tooltip.style.top = (e.pageY - 50) + 'px';
+                    tooltip.style.opacity = '1';
+                });
+                
+                node.addEventListener('mouseleave', () => {
+                    tooltip.style.opacity = '0';
+                });
+                
+                node.addEventListener('click', () => {
+                    const stats = document.getElementById('attackStats');
+                    stats.innerHTML = `
+                        🚨 <strong>THREAT DETAILS:</strong> ${attack.country} - ${attack.attacks} attacks from ${attack.ip}
+                        <br>Last seen: ${new Date().toLocaleTimeString()} | Risk Level: HIGH
+                    `;
+                    stats.style.color = '#ff4444';
+                    
+                    // Add to activity log
+                    addLogEntry(`Attack node clicked: ${attack.country} (${attack.attacks} attacks)`, 'log-warning');
+                });
+                
+                map.appendChild(node);
+            });
+        }
+
+        // Update System Status
+        function updateStatus() {
+            fetch("hasil.txt?" + new Date().getTime())
+            .then(res => {
+                if (!res.ok) throw new Error("HTTP error " + res.status);
+                return res.text();
+            })
+            .then(data => {
+                let lines = data.trim().split("\n");
+                let failed = 0, success = 0;
+
+                lines.forEach(line => {
+                    if (line.startsWith("failed_login")) failed = parseInt(line.split(":")[1]);
+                    if (line.startsWith("successful_login")) success = parseInt(line.split(":")[1]);
+                });
+
+                document.getElementById("systemStatus").innerHTML = 
+                    `🛡️ DEFENSE ACTIVE | 🔒 BLOCKED: ${failed} | ☠️ AUTHORIZED: ${success}`;
+                document.getElementById("failedCount").textContent = failed;
+                document.getElementById("successCount").textContent = success;
+                
+                // Update ML score based on threat level
+                const threatLevel = failed > 10 ? Math.max(60, 95 - failed) : 87.3;
+                document.getElementById("mlScore").textContent = threatLevel.toFixed(1) + '%';
+                document.querySelector('.confidence-fill').style.width = threatLevel + '%';
+                
+                // Update activity log based on hasil.txt
+                updateActivityLogFromFile(failed, success);
+            })
+            .catch(err => {
+                console.error("Error:", err);
+                document.getElementById("systemStatus").innerHTML = "❌ CONNECTION LOST - SWITCHING TO OFFLINE MODE";
+                addLogEntry("System connection lost - switching to offline mode", 'log-error');
+            });
+        }
+
+        // Update Activity Log from hasil.txt data
+        function updateActivityLogFromFile(failed, success) {
+            const log = document.getElementById('activityLog');
+            const time = new Date().toLocaleTimeString();
+            
+            // Clear existing entries periodically
+            if (log.children.length > 8) {
+                log.innerHTML = '';
+            }
+            
+            if (failed > 0) {
+                const failedEntry = document.createElement('div');
+                failedEntry.className = 'log-entry log-error';
+                failedEntry.innerHTML = `[${time}] ⚠️ SECURITY ALERT: ${failed} failed login attempts detected`;
+                log.insertBefore(failedEntry, log.firstChild);
+            }
+            
+            if (success > 0) {
+                const successEntry = document.createElement('div');
+                successEntry.className = 'log-entry log-success';
+                successEntry.innerHTML = `[${time}] ☠️ LOGIN SUCCESS: ${success} authorized access granted`;
+                log.insertBefore(successEntry, log.firstChild);
+            }
+            
+            // Add system status entry
+            const statusEntry = document.createElement('div');
+            statusEntry.className = 'log-entry';
+            statusEntry.innerHTML = `[${time}] 📊 System Status: Failed: ${failed} | Success: ${success} | Threat Level: ${failed > 10 ? 'HIGH' : failed > 5 ? 'MEDIUM' : 'LOW'}`;
+            log.insertBefore(statusEntry, log.firstChild);
+        }
+
+        // Add custom log entry function
+        function addLogEntry(message, type = '') {
+            const log = document.getElementById('activityLog');
+            const time = new Date().toLocaleTimeString();
+            const logEl = document.createElement('div');
+            logEl.className = `log-entry ${type}`;
+            logEl.innerHTML = `[${time}] ${message}`;
+            
+            log.insertBefore(logEl, log.firstChild);
+            if (log.children.length > 12) {
+                log.removeChild(log.lastChild);
+            }
+        }
+
+        // Update network statistics
+        function updateNetworkStats() {
+            const stats = {
+                bandwidth: [(Math.random() * 2 + 0.5).toFixed(1) + 'GB/s'],
+                connections: [Math.floor(Math.random() * 1000 + 2000)],
+                packets: [(Math.random() * 2 + 97).toFixed(1) + '%'],
+                latency: [Math.floor(Math.random() * 20 + 5) + 'ms']
+            };
+            
+            Object.keys(stats).forEach(key => {
+                const el = document.getElementById(key);
+                if (el) el.textContent = stats[key][0];
+            });
+        }
+
+        // Initialize everything
+        setTimeout(() => {
+            createBinaryRain();
+        }, 3000);
+
+        createNetworkChart();
+        createAttackMap();
+        updateStatus();
+        
+        // Set up intervals
+        setInterval(updateStatus, 5000);
+        setInterval(updateNetworkStats, 12000);
+
+        // Add some dynamic effects
+        setInterval(() => {
+            const panels = document.querySelectorAll('.dashboard-panel');
+            panels.forEach(panel => {
+                if (Math.random() > 0.7) {
+                    panel.style.boxShadow = '0 0 30px rgba(0, 162, 255, 0.3)';
+                    setTimeout(() => {
+                        panel.style.boxShadow = '';
+                    }, 1000);
+                }
+            });
+        }, 3000);
+    </script>
+</body>
+</html>

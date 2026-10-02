@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Logging Terdistribusi - Deteksi Serangan</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="network-bg"></div>
+    <div class="network-nodes" id="networkNodes"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="title">CYBER SECURITY COMMAND CENTER</h1>
+            <p class="subtitle">Sistem Logging Terdistribusi untuk Deteksi Serangan Jaringan</p>
+            <div class="threat-level">
+                <div class="threat-indicator low">RENDAH</div>
+                <div class="threat-indicator medium">SEDANG</div>
+                <div class="threat-indicator high">TINGGI</div>
+                <div class="threat-indicator critical" id="currentThreat">KRITIS</div>
+            </div>
+        </div>
+
+        <!-- Status Panel -->
+        <div class="panel status-panel">
+            <h3 class="panel-title">STATUS SISTEM & STATISTIK JARINGAN</h3>
+            <div class="system-status" id="systemStatus">🔄 MEMUAT SISTEM...</div>
+            <div class="status-display" id="status">🔒 GAGAL: 0 | ✅ BERHASIL: 0</div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value failed" id="failedCount">0</div>
+                    <div class="stat-label">SERANGAN GAGAL</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value success" id="successCount">0</div>
+                    <div class="stat-label">BERHASIL MASUK</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalAttacks">0</div>
+                    <div class="stat-label">TOTAL SERANGAN</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attack Map -->
+        <div class="panel">
+            <h3 class="panel-title">PETA SERANGAN GLOBAL</h3>
+            <div class="network-map">
+                <div class="world-map"></div>
+                <div class="attack-point" style="top: 30%; left: 20%;" onclick="showAttackInfo('China')"></div>
+                <div class="attack-point" style="top: 40%; left: 80%;" onclick="showAttackInfo('Russia')"></div>
+                <div class="attack-point" style="top: 60%; left: 40%;" onclick="showAttackInfo('Iran')"></div>
+                <div class="attack-point" style="top: 20%; left: 60%;" onclick="showAttackInfo('North Korea')"></div>
+                <div class="attack-point" style="top: 80%; left: 10%;" onclick="showAttackInfo('Brazil')"></div>
+            </div>
+        </div>
+
+        <!-- Activity Graph -->
+        <div class="panel">
+            <h3 class="panel-title">GRAFIK AKTIVITAS JARINGAN</h3>
+            <div class="activity-graph" id="activityGraph">
+                <div class="graph-bar" style="left: 10%; animation-delay: 0s;"></div>
+                <div class="graph-bar" style="left: 20%; animation-delay: 0.5s;"></div>
+                <div class="graph-bar" style="left: 30%; animation-delay: 1s;"></div>
+                <div class="graph-bar" style="left: 40%; animation-delay: 1.5s;"></div>
+                <div class="graph-bar" style="left: 50%; animation-delay: 2s;"></div>
+                <div class="graph-bar" style="left: 60%; animation-delay: 2.5s;"></div>
+                <div class="graph-bar" style="left: 70%; animation-delay: 3s;"></div>
+                <div class="graph-bar" style="left: 80%; animation-delay: 3.5s;"></div>
+                <div class="graph-bar" style="left: 90%; animation-delay: 4s;"></div>
+            </div>
+        </div>
+
+        <!-- Security Systems -->
+        <div class="panel">
+            <h3 class="panel-title">SISTEM KEAMANAN</h3>
+            <div class="security-systems">
+                <div class="security-item">
+                    <div class="firewall-circle">
+                        <svg width="80" height="80">
+                            <circle cx="40" cy="40" r="35" fill="none" stroke-width="4" class="firewall-stroke"/>
+                        </svg>
+                        <div class="firewall-status">🛡️</div>
+                    </div>
+                    <div class="security-label">FIREWALL DEFENSE</div>
+                    <div class="security-stats">
+                        <div class="mini-stat">
+                            <span class="mini-value" id="blockedIPs">247</span>
+                            <span class="mini-label">BLOCKED IPS</span>
+                        </div>
+                        <div class="mini-stat">
+                            <span class="mini-value" id="rulesActive">156</span>
+                            <span class="mini-label">RULES ACTIVE</span>
+                        </div>
+                        <div class="mini-stat">
+                            <span class="mini-value" id="ddosMitigation">ACTIVE</span>
+                            <span class="mini-label">DDOS MITIGATION</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="security-item">
+                    <div class="ai-detector">
+                        <div class="ai-pulse">🤖</div>
+                    </div>
+                    <div class="security-label">AI THREAT DETECTION</div>
+                    <div class="security-stats">
+                        <div class="mini-stat">
+                            <span class="mini-value" id="anomalyDetection">12</span>
+                            <span class="mini-label">ANOMALY DETECTION</span>
+                        </div>
+                        <div class="mini-stat">
+                            <span class="mini-value" id="confidenceLevel">98.5%</span>
+                            <span class="mini-label">CONFIDENCE LEVEL</span>
+                        </div>
+                        <div class="mini-stat">
+                            <span class="mini-value" id="nextAttack">2.3 MIN</span>
+                            <span class="mini-label">NEXT ATTACK PREDICTION</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Log Activity -->
+        <div class="panel">
+            <h3 class="panel-title">LOG AKTIVITAS REAL-TIME</h3>
+            <div class="log-container" id="logContainer">
+                <div class="log-entry">🔍 AI Threat Detection: Scanning network...</div>
+                <div class="log-entry">🛡️ Firewall Defense: Active protection enabled</div>
+                <div class="log-entry">🔍 Vulnerability Scanner: System check completed</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="attackModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">Serangan Terdeteksi</h2>
+            <p id="modalContent">Detail serangan akan ditampilkan di sini.</p>
+        </div>
+    </div>
+
+    <script>
+        // Create network nodes
+        function createNetworkNodes() {
+            const container = document.getElementById('networkNodes');
+            const nodeCount = 30;
+            
+            for (let i = 0; i < nodeCount; i++) {
+                const node = document.createElement('div');
+                node.className = 'node';
+                node.style.left = Math.random() * 100 + '%';
+                node.style.top = Math.random() * 100 + '%';
+                node.style.animationDelay = Math.random() * 3 + 's';
+                container.appendChild(node);
+
+                if (i % 3 === 0) {
+                    const line = document.createElement('div');
+                    line.className = 'node-line';
+                    line.style.top = Math.random() * 100 + '%';
+                    line.style.left = Math.random() * 100 + '%';
+                    line.style.width = Math.random() * 200 + 100 + 'px';
+                    line.style.transform = 'rotate(' + Math.random() * 360 + 'deg)';
+                    line.style.animationDelay = Math.random() * 4 + 's';
+                    container.appendChild(line);
+                }
+            }
+        }
+
+        // Update system status
+        function updateStatus() {
+            fetch("hasil.txt?" + new Date().getTime())
+            .then(res => {
+                if (!res.ok) throw new Error("HTTP error " + res.status);
+                return res.text();
+            })
+            .then(data => {
+                let lines = data.trim().split("\n");
+                let failed = 0, success = 0;
+
+                lines.forEach(line => {
+                    if (line.startsWith("failed_login")) failed = parseInt(line.split(":")[1]);
+                    if (line.startsWith("successful_login")) success = parseInt(line.split(":")[1]);
+                });
+
+                // Update system status
+                document.getElementById("systemStatus").innerHTML = "⚡ SERVER AKTIF";
+                
+                // Update main status
+                let msg = `🔒 GAGAL: ${failed} | ✅ BERHASIL: ${success}`;
+                document.getElementById("status").innerHTML = msg;
+
+                // Update counters
+                document.getElementById("failedCount").textContent = failed;
+                document.getElementById("successCount").textContent = success;
+                document.getElementById("totalAttacks").textContent = failed + success;
+
+                updateThreatLevel(failed, success);
+                addLogEntry(failed > 0 ? 'failed' : 'success', 
+                          `Deteksi: ${failed} serangan gagal, ${success} akses berhasil`);
+            })
+            .catch(err => {
+                console.error("Error:", err);
+                document.getElementById("systemStatus").innerHTML = "❌ KONEKSI TERPUTUS";
+                document.getElementById("status").innerHTML = "❌ KONEKSI TERPUTUS";
+                addLogEntry('failed', 'Koneksi ke sistem monitoring terputus');
+            });
+        }
+
+        // Update threat level
+        function updateThreatLevel(failed, success) {
+            const total = failed + success;
+            const threatElement = document.getElementById('currentThreat');
+            
+            if (total > 50) {
+                threatElement.className = 'threat-indicator critical';
+                threatElement.textContent = 'KRITIS';
+            } else if (total > 20) {
+                threatElement.className = 'threat-indicator high';
+                threatElement.textContent = 'TINGGI';
+            } else if (total > 5) {
+                threatElement.className = 'threat-indicator medium';
+                threatElement.textContent = 'SEDANG';
+            } else {
+                threatElement.className = 'threat-indicator low';
+                threatElement.textContent = 'RENDAH';
+            }
+        }
+
+        // Add log entry
+        function addLogEntry(type, message) {
+            const container = document.getElementById('logContainer');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            
+            container.insertBefore(entry, container.firstChild);
+            
+            while (container.children.length > 10) {
+                container.removeChild(container.lastChild);
+            }
+        }
+
+        // Show attack info modal
+        function showAttackInfo(country) {
+            const modal = document.getElementById('attackModal');
+            const title = document.getElementById('modalTitle');
+            const content = document.getElementById('modalContent');
+            
+            title.textContent = `Serangan dari ${country}`;
+            content.innerHTML = `
+                <p>IP Origin: ${getRandomIP()}</p>
+                <p>Jenis Serangan: ${getRandomAttackType()}</p>
+                <p>Tingkat Bahaya: ${getRandomThreat()}</p>
+                <p>Status: Diblokir oleh Firewall</p>
+            `;
+            
+            modal.style.display = 'block';
+            addLogEntry('failed', `Serangan dari ${country} berhasil diblokir`);
+        }
+
+        // Helper functions
+        function getRandomIP() {
+            return `${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`;
+        }
+
+        function getRandomAttackType() {
+            const types = ['DDoS', 'Brute Force', 'SQL Injection', 'Port Scanning', 'Malware'];
+            return types[Math.floor(Math.random() * types.length)];
+        }
+
+        function getRandomThreat() {
+            const threats = ['Rendah', 'Sedang', 'Tinggi', 'Kritis'];
+            return threats[Math.floor(Math.random() * threats.length)];
+        }
+
+        // Update security stats
+        function updateSecurityStats() {
+            document.getElementById('blockedIPs').textContent = Math.floor(Math.random() * 500) + 200;
+            document.getElementById('rulesActive').textContent = Math.floor(Math.random() * 200) + 150;
+            document.getElementById('anomalyDetection').textContent = Math.floor(Math.random() * 20) + 5;
+            document.getElementById('confidenceLevel').textContent = (95 + Math.random() * 5).toFixed(1) + '%';
+            document.getElementById('nextAttack').textContent = (Math.random() * 10 + 1).toFixed(1) + ' MIN';
+        }
+
+        // Generate random log entries
+        function generateRandomLogs() {
+            const logs = [
+                '🔍 AI Threat Detection: Anomali terdeteksi',
+                '🛡️ Firewall Defense: Paket mencurigakan diblokir',
+                '🔍 Vulnerability Scanner: Pemindaian keamanan selesai',
+                '⚡ System Monitor: Semua layanan berjalan normal',
+                '🚨 Intrusion Detection: Percobaan akses ilegal',
+                '🔒 Access Control: Otentikasi berhasil'
+            ];
+            
+            const randomLog = logs[Math.floor(Math.random() * logs.length)];
+            addLogEntry(Math.random() > 0.7 ? 'failed' : 'success', randomLog);
+        }
+
+        // Modal close event
+        document.querySelector('.close').onclick = function() {
+            document.getElementById('attackModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('attackModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Initialize
+        createNetworkNodes();
+        updateStatus();
+        
+        // Set intervals
+        setInterval(updateStatus, 5000);
+        setInterval(updateSecurityStats, 3000);
+        setInterval(generateRandomLogs, 7000);
+    </script>
+</body>
+</html>

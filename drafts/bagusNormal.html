@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Logging Terdistribusi - Deteksi Serangan</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* Network Space Animation Background */
+        .network-space {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -3;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 162, 255, 0.1) 0%, transparent 70%);
+        }
+        
+        .network-nodes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+        
+        .node {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #00a2ff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0, 162, 255, 0.8);
+            animation: float-node 8s ease-in-out infinite;
+        }
+        
+        @keyframes float-node {
+            0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.7; }
+            25% { transform: translate(20px, -30px) scale(1.2); opacity: 1; }
+            50% { transform: translate(-15px, -60px) scale(0.8); opacity: 0.5; }
+            75% { transform: translate(-30px, -20px) scale(1.1); opacity: 0.9; }
+        }
+        
+        .connection-line {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 162, 255, 0.6), transparent);
+            animation: pulse-line 3s ease-in-out infinite;
+            transform-origin: left center;
+        }
+        
+        @keyframes pulse-line {
+            0%, 100% { opacity: 0.3; transform: scaleX(0.5); }
+            50% { opacity: 1; transform: scaleX(1.2); }
+        }
+        
+        /* Digital Grid */
+        .digital-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 162, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 162, 255, 0.1) 1px, transparent 1px);
+            background-size: 100px 100px;
+            animation: grid-move 20s linear infinite;
+            z-index: -1;
+        }
+        
+        @keyframes grid-move {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(100px, 100px); }
+        }
+        
+        /* Floating Data Packets */
+        .data-packets {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        .packet {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #00ff88;
+            border-radius: 2px;
+            box-shadow: 0 0 8px rgba(0, 255, 136, 0.8);
+            animation: packet-flow 12s linear infinite;
+        }
+        
+        @keyframes packet-flow {
+            0% { transform: translate(0, 100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translate(100vw, -100px) rotate(360deg); opacity: 0; }
+        }
+        
+        /* Main Container */
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto;
+            gap: 20px;
+            padding: 20px;
+            min-height: 100vh;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Box Styling */
+        .info-box {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(0, 162, 255, 0.3);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 0 30px rgba(0, 162, 255, 0.2),
+                inset 0 0 30px rgba(0, 162, 255, 0.1);
+        }
+        
+        .info-box::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #00a2ff, #0066cc, #003d7a, #00a2ff);
+            border-radius: 15px;
+            z-index: -1;
+            animation: border-glow 3s ease-in-out infinite;
+        }
+        
+        @keyframes border-glow {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        
+        /* Box 1 - System Info */
+        .system-info {
+            grid-column: 1 / 2;
+            grid-row: 1 / 2;
+        }
+        
+        .system-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 2rem;
+            font-weight: 900;
+            color: #00a2ff;
+            text-shadow: 0 0 15px rgba(0, 162, 255, 0.6);
+            margin-bottom: 10px;
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+        
+        .system-subtitle {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.4rem;
+            color: #64b5f6;
+            margin-bottom: 25px;
+            text-shadow: 0 0 10px rgba(100, 181, 246, 0.4);
+        }
+        
+        .threat-level {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .threat-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffeb3b;
+            box-shadow: 0 0 15px rgba(255, 235, 59, 0.8);
+            animation: pulse-threat 2s ease-in-out infinite;
+        }
+        
+        .threat-text {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            color: #ffeb3b;
+            font-weight: 600;
+        }
+        
+        @keyframes pulse-threat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { text-shadow: 0 0 15px rgba(0, 162, 255, 0.6); }
+            50% { text-shadow: 0 0 25px rgba(0, 162, 255, 0.9); }
+        }
+        
+        /* Box 2 - Status */
+        .status-box {
+            grid-column: 1 / 2;
+            grid-row: 2 / 3;
+        }
+        
+        .status-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.5rem;
+            color: #00a2ff;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(0, 162, 255, 0.5);
+        }
+        
+        .status-display {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.4rem;
+            color: #ffffff;
+            text-align: center;
+            font-weight: 600;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 162, 255, 0.2);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .status-display::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 162, 255, 0.1), transparent);
+            animation: scan 3s ease-in-out infinite;
+        }
+        
+        @keyframes scan {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            gap: 15px;
+        }
+        
+        .stat-item {
+            background: rgba(0, 162, 255, 0.1);
+            border: 1px solid rgba(0, 162, 255, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            flex: 1;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #64b5f6;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(0, 162, 255, 0.5);
+        }
+        
+        .failed { color: #ff4444; text-shadow: 0 0 10px rgba(255, 68, 68, 0.5); }
+        .success { color: #00ff88; text-shadow: 0 0 10px rgba(0, 255, 136, 0.5); }
+        
+        /* Box 3 - Chart */
+        .chart-box {
+            grid-column: 2 / 3;
+            grid-row: 1 / 3;
+        }
+        
+        .chart-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.5rem;
+            color: #00a2ff;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(0, 162, 255, 0.5);
+        }
+        
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 162, 255, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .chart-canvas {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .chart-bar {
+            position: absolute;
+            bottom: 0;
+            width: 20px;
+            background: linear-gradient(to top, #00a2ff, #64b5f6);
+            border-radius: 3px 3px 0 0;
+            animation: bar-grow 2s ease-out;
+            box-shadow: 0 0 10px rgba(0, 162, 255, 0.5);
+        }
+        
+        @keyframes bar-grow {
+            from { height: 0; }
+            to { height: var(--height); }
+        }
+        
+        .loading {
+            color: #ffeb3b;
+            animation: loading-pulse 1s ease-in-out infinite;
+        }
+        
+        @keyframes loading-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Connection Status */
+        .connection-status {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: #64b5f6;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff88;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+        
+        .error .status-dot {
+            background: #ff4444;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+            }
+            
+            .system-info, .status-box, .chart-box {
+                grid-column: 1 / 2;
+            }
+            
+            .chart-box {
+                grid-row: 3 / 4;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 10px;
+                gap: 15px;
+            }
+            
+            .info-box {
+                padding: 20px;
+            }
+            
+            .system-title {
+                font-size: 1.5rem;
+            }
+            
+            .chart-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="network-space"></div>
+    <div class="network-nodes" id="networkNodes"></div>
+    <div class="digital-grid"></div>
+    <div class="data-packets" id="dataPackets"></div>
+    
+    <div class="main-container">
+        <!-- Box 1: System Info -->
+        <div class="info-box system-info">
+            <div class="connection-status" id="connectionStatus">
+                <div class="status-dot"></div>
+                <span>ONLINE</span>
+            </div>
+            
+            <h1 class="system-title">SISTEM LOGGING TERDISTRIBUSI</h1>
+            <h2 class="system-subtitle">untuk Deteksi Serangan Jaringan</h2>
+            
+            <div class="threat-level">
+                <div class="threat-indicator"></div>
+                <span class="threat-text">TINGKAT ANCAMAN: SEDANG</span>
+            </div>
+        </div>
+        
+        <!-- Box 2: Status -->
+        <div class="info-box status-box">
+            <h3 class="status-title">STATUS SERANGAN REAL-TIME</h3>
+            
+            <div class="status-display" id="status">
+                <span class="loading">⚡ MEMUAT SISTEM...</span>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-label">SERANGAN GAGAL</div>
+                    <div class="stat-value failed" id="failedCount">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">BERHASIL MASUK</div>
+                    <div class="stat-value success" id="successCount">0</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Box 3: Chart -->
+        <div class="info-box chart-box">
+            <h3 class="chart-title">GRAFIK STATUS SERANGAN</h3>
+            
+            <div class="chart-container">
+                <div class="chart-canvas" id="chartCanvas">
+                    <!-- Chart will be generated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let attackData = [];
+        let maxDataPoints = 10;
+        
+        // Create network nodes animation
+        function createNetworkNodes() {
+            const container = document.getElementById('networkNodes');
+            const nodeCount = 15;
+            
+            for (let i = 0; i < nodeCount; i++) {
+                const node = document.createElement('div');
+                node.className = 'node';
+                node.style.left = Math.random() * 100 + '%';
+                node.style.top = Math.random() * 100 + '%';
+                node.style.animationDelay = Math.random() * 8 + 's';
+                node.style.animationDuration = (Math.random() * 4 + 6) + 's';
+                container.appendChild(node);
+                
+                // Create connections between nodes
+                if (i > 0 && Math.random() > 0.7) {
+                    const line = document.createElement('div');
+                    line.className = 'connection-line';
+                    line.style.left = node.style.left;
+                    line.style.top = node.style.top;
+                    line.style.width = Math.random() * 200 + 50 + 'px';
+                    line.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    line.style.animationDelay = Math.random() * 3 + 's';
+                    container.appendChild(line);
+                }
+            }
+        }
+        
+        // Create floating data packets
+        function createDataPackets() {
+            const container = document.getElementById('dataPackets');
+            const packetCount = 20;
+            
+            for (let i = 0; i < packetCount; i++) {
+                const packet = document.createElement('div');
+                packet.className = 'packet';
+                packet.style.left = Math.random() * 100 + '%';
+                packet.style.animationDelay = Math.random() * 12 + 's';
+                packet.style.animationDuration = (Math.random() * 8 + 10) + 's';
+                container.appendChild(packet);
+            }
+        }
+        
+        // Update chart
+        function updateChart() {
+            const canvas = document.getElementById('chartCanvas');
+            canvas.innerHTML = '';
+            
+            if (attackData.length === 0) return;
+            
+            const maxValue = Math.max(...attackData, 1);
+            const barWidth = Math.min(30, (canvas.offsetWidth - 40) / attackData.length);
+            
+            attackData.forEach((value, index) => {
+                const bar = document.createElement('div');
+                bar.className = 'chart-bar';
+                bar.style.left = (index * (barWidth + 5) + 20) + 'px';
+                bar.style.width = barWidth + 'px';
+                bar.style.setProperty('--height', (value / maxValue * 300) + 'px');
+                bar.style.height = (value / maxValue * 300) + 'px';
+                bar.style.animationDelay = (index * 0.1) + 's';
+                canvas.appendChild(bar);
+            });
+        }
+        
+        // Update status function
+        function updateStatus() {
+            fetch("hasil.txt?" + new Date().getTime())
+            .then(res => {
+                if (!res.ok) throw new Error("HTTP error " + res.status);
+                return res.text();
+            })
+            .then(data => {
+                console.log("[DEBUG] Data fetched:\n" + data);
+                let lines = data.trim().split("\n");
+                let failed = 0, success = 0;
+                
+                lines.forEach(line => {
+                    if (line.startsWith("failed_login")) failed = parseInt(line.split(":")[1]);
+                    if (line.startsWith("successful_login")) success = parseInt(line.split(":")[1]);
+                });
+                
+                // Update main status
+                let total = failed + success;
+                let msg = `🔒 TOTAL: ${total} | GAGAL: ${failed} | ✅ BERHASIL: ${success}`;
+                document.getElementById("status").innerHTML = msg;
+                
+                // Update individual counters
+                document.getElementById("failedCount").textContent = failed;
+                document.getElementById("successCount").textContent = success;
+                
+                // Update chart data
+                attackData.push(total);
+                if (attackData.length > maxDataPoints) {
+                    attackData.shift();
+                }
+                updateChart();
+                
+                // Update connection status
+                const connectionStatus = document.getElementById("connectionStatus");
+                connectionStatus.className = "connection-status";
+                connectionStatus.innerHTML = '<div class="status-dot"></div><span>ONLINE</span>';
+            })
+            .catch(err => {
+                console.error("[ERROR] Gagal membaca hasil.txt:", err);
+                document.getElementById("status").innerHTML = "❌ KONEKSI TERPUTUS";
+                
+                // Update connection status to error
+                const connectionStatus = document.getElementById("connectionStatus");
+                connectionStatus.className = "connection-status error";
+                connectionStatus.innerHTML = '<div class="status-dot"></div><span>OFFLINE</span>';
+            });
+        }
+        
+        // Initialize
+        createNetworkNodes();
+        createDataPackets();
+        updateStatus();
+        setInterval(updateStatus, 5000);
+        
+        // Add dynamic threat level updates
+        setInterval(() => {
+            const threats = ['RENDAH', 'SEDANG', 'TINGGI', 'KRITIS'];
+            const colors = ['#00ff88', '#ffeb3b', '#ff9800', '#ff4444'];
+            const randomThreat = Math.floor(Math.random() * threats.length);
+            
+            const threatText = document.querySelector('.threat-text');
+            const threatIndicator = document.querySelector('.threat-indicator');
+            
+            threatText.textContent = `TINGKAT ANCAMAN: ${threats[randomThreat]}`;
+            threatText.style.color = colors[randomThreat];
+            threatIndicator.style.background = colors[randomThreat];
+            threatIndicator.style.boxShadow = `0 0 15px ${colors[randomThreat]}`;
+        }, 8000);
+    </script>
+</body>
+</html>

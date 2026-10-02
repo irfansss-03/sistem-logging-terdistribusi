@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberShield - Advanced Security Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
+            color: #00ff41;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Matrix Rain Effect */
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.1;
+        }
+
+        .matrix-column {
+            position: absolute;
+            top: -100px;
+            font-size: 14px;
+            line-height: 1.2;
+            color: #00ff41;
+            animation: matrix-fall linear infinite;
+        }
+
+        @keyframes matrix-fall {
+            0% { transform: translateY(-100vh); opacity: 1; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+
+        /* Header */
+        .header {
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid #00ff41;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            text-align: center;
+            text-shadow: 0 0 20px #00ff41;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px #00ff41; }
+            to { text-shadow: 0 0 30px #00ff41, 0 0 40px #00ff41; }
+        }
+
+        /* Dashboard Grid */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Card Styles */
+        .card {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ff41;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.5);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00ff41, transparent);
+            animation: scan 3s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .card h3 {
+            color: #00ff41;
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Status Cards */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .status-card {
+            background: rgba(0, 255, 65, 0.1);
+            border: 1px solid #00ff41;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .status-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00ff41;
+            text-shadow: 0 0 10px #00ff41;
+        }
+
+        .status-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 0.5rem;
+        }
+
+        /* Network Graph */
+        .network-container {
+            position: relative;
+            height: 300px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .network-node {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #00ff41;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00ff41;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .network-connection {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #00ff41, transparent);
+            opacity: 0.6;
+            animation: data-flow 3s linear infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.7; }
+        }
+
+        @keyframes data-flow {
+            0% { opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { opacity: 0.3; }
+        }
+
+        /* World Map */
+        .world-map {
+            background: url('data:image/svg+xml,<svg viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg"><rect width="1000" height="500" fill="%23000"/><circle cx="200" cy="150" r="3" fill="%2300ff41"><animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/></circle><circle cx="500" cy="200" r="3" fill="%23ff4141"><animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite"/></circle><circle cx="800" cy="180" r="3" fill="%2300ff41"><animate attributeName="opacity" values="0.3;1;0.3" dur="2.5s" repeatCount="indefinite"/></circle></svg>') center/cover;
+            height: 250px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .attack-marker {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #ff4141;
+            border-radius: 50%;
+            box-shadow: 0 0 15px #ff4141;
+            animation: attack-pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes attack-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.8); }
+        }
+
+        /* Log Stream */
+        .log-stream {
+            height: 200px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 8px;
+            padding: 1rem;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .log-entry {
+            margin-bottom: 0.5rem;
+            padding: 0.25rem;
+            border-left: 3px solid #00ff41;
+            padding-left: 0.5rem;
+            animation: log-appear 0.5s ease-in;
+        }
+
+        .log-entry.warning { border-left-color: orange; color: orange; }
+        .log-entry.error { border-left-color: #ff4141; color: #ff4141; }
+
+        @keyframes log-appear {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Progress Bars */
+        .progress-bar {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+
+        .progress-fill {
+            height: 20px;
+            background: linear-gradient(90deg, #00ff41, #66ff66);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shine 2s linear infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* AI Status Indicator */
+        .ai-status {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(0, 255, 65, 0.1);
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .ai-indicator {
+            width: 20px;
+            height: 20px;
+            background: #00ff41;
+            border-radius: 50%;
+            animation: ai-pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes ai-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #00ff41;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Matrix Background -->
+    <div class="matrix-bg" id="matrixBg"></div>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>🛡️ CYBERSHIELD DEFENSE SYSTEM</h1>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="dashboard">
+        <!-- Attack Status -->
+        <div class="card">
+            <h3>🚨 Status Serangan Real-time</h3>
+            <div class="status-grid">
+                <div class="status-card">
+                    <div class="status-value" id="failedCount">0</div>
+                    <div class="status-label">Login Gagal</div>
+                </div>
+                <div class="status-card">
+                    <div class="status-value" id="successCount">0</div>
+                    <div class="status-label">Login Berhasil</div>
+                </div>
+                <div class="status-card">
+                    <div class="status-value" id="threatLevel">NORMAL</div>
+                    <div class="status-label">Tingkat Ancaman</div>
+                </div>
+                <div class="status-card">
+                    <div class="status-value" id="activeConnections">247</div>
+                    <div class="status-label">Koneksi Aktif</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Threat Detection -->
+        <div class="card">
+            <h3>🤖 AI Threat Detection</h3>
+            <div class="ai-status">
+                <div class="ai-indicator"></div>
+                <div>
+                    <strong>Status:</strong> <span id="aiStatus">AKTIF - MONITORING</span><br>
+                    <small>Model: Advanced Neural Network v2.1</small>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 87%" id="aiAccuracy"></div>
+            </div>
+            <div style="text-align: center; margin-top: 0.5rem;">
+                Akurasi Deteksi: <span id="accuracyText">87%</span>
+            </div>
+            <div style="margin-top: 1rem; font-size: 0.9rem;">
+                <div>🔴 Ancaman Terdeteksi: <span id="threatsDetected">12</span></div>
+                <div>🟡 False Positive: <span id="falsePositives">3</span></div>
+                <div>🟢 Legitimate Traffic: <span id="legitimateTraffic">1,247</span></div>
+            </div>
+        </div>
+
+        <!-- Network Topology -->
+        <div class="card">
+            <h3>🌐 Topologi Jaringan</h3>
+            <div class="network-container" id="networkGraph">
+                <!-- Network nodes will be generated dynamically -->
+            </div>
+            <div style="margin-top: 1rem; font-size: 0.9rem;">
+                <div>🟢 Node Aktif: <span id="activeNodes">15</span></div>
+                <div>🔴 Node Bermasalah: <span id="problematicNodes">2</span></div>
+                <div>📊 Bandwidth: <span id="bandwidth">1.2 Gbps</span></div>
+            </div>
+        </div>
+
+        <!-- Global Attack Map -->
+        <div class="card">
+            <h3>🗺️ Peta Serangan Global</h3>
+            <div class="world-map" id="worldMap">
+                <!-- Attack markers will be generated dynamically -->
+            </div>
+            <div style="margin-top: 1rem; font-size: 0.9rem;">
+                <div>🔴 Serangan Aktif: <span id="activeAttacks">7</span></div>
+                <div>🌍 Negara Terdeteksi: <span id="countries">12</span></div>
+                <div>⚡ Intensitas: <span id="intensity">TINGGI</span></div>
+            </div>
+        </div>
+
+        <!-- Firewall Defense -->
+        <div class="card">
+            <h3>🔥 Firewall Defense System</h3>
+            <div style="margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Blocked Attacks</span>
+                    <span id="blockedPercentage">94%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 94%" id="firewallEfficiency"></div>
+                </div>
+            </div>
+            <div style="font-size: 0.9rem;">
+                <div>🚫 Paket Diblokir: <span id="blockedPackets">15,678</span></div>
+                <div>✅ Paket Diizinkan: <span id="allowedPackets">234,567</span></div>
+                <div>⚙️ Rules Aktif: <span id="activeRules">1,245</span></div>
+                <div>🔄 Last Update: <span id="lastUpdate">2 menit lalu</span></div>
+            </div>
+        </div>
+
+        <!-- Network Statistics -->
+        <div class="card">
+            <h3>📊 Statistik Jaringan</h3>
+            <div class="status-grid">
+                <div class="status-card">
+                    <div class="status-value" id="latency">12ms</div>
+                    <div class="status-label">Latency</div>
+                </div>
+                <div class="status-card">
+                    <div class="status-value" id="uptime">99.7%</div>
+                    <div class="status-label">Uptime</div>
+                </div>
+                <div class="status-card">
+                    <div class="status-value" id="throughput">847</div>
+                    <div class="status-label">Mbps</div>
+                </div>
+                <div class="status-card">
+                    <div class="status-value" id="packets">2.1M</div>
+                    <div class="status-label">Packets/sec</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vulnerability Scanner -->
+        <div class="card">
+            <h3>🔍 Vulnerability Scanner</h3>
+            <div style="margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Scan Progress</span>
+                    <span id="scanProgress">78%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 78%" id="scanBar"></div>
+                </div>
+            </div>
+            <div style="font-size: 0.9rem;">
+                <div>🔴 Critical: <span id="criticalVulns">3</span></div>
+                <div>🟡 High: <span id="highVulns">7</span></div>
+                <div>🟠 Medium: <span id="mediumVulns">15</span></div>
+                <div>🟢 Low: <span id="lowVulns">23</span></div>
+                <div>📅 Last Scan: <span id="lastScan">1 jam lalu</span></div>
+            </div>
+        </div>
+
+        <!-- Activity Logs -->
+        <div class="card">
+            <h3>📋 Log Aktivitas Real-time</h3>
+            <div class="log-stream" id="logStream">
+                <!-- Logs will be generated dynamically -->
+            </div>
+        </div>
+
+        <!-- ML Analytics -->
+        <div class="card">
+            <h3>🧠 Advanced ML Analytics</h3>
+            <div class="ai-status">
+                <div class="ai-indicator"></div>
+                <div>
+                    <strong>Deep Learning Model:</strong> AKTIF<br>
+                    <small>Processing 50,000+ events/second</small>
+                </div>
+            </div>
+            <div style="margin-top: 1rem; font-size: 0.9rem;">
+                <div>🎯 Anomaly Detection: <span style="color: #00ff41;">NORMAL</span></div>
+                <div>📈 Prediction Accuracy: <span id="predictionAccuracy">94.2%</span></div>
+                <div>🔄 Model Training: <span id="trainingStatus">Continuous</span></div>
+                <div>📊 Data Processed: <span id="dataProcessed">2.3 TB</span></div>
+                <div>⚡ Processing Speed: <span id="processingSpeed">15.7K ops/sec</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Matrix Rain Effect
+        function createMatrixRain() {
+            const matrixBg = document.getElementById('matrixBg');
+            const chars = '01ABCDEFabcdef0123456789ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ';
+            
+            for (let i = 0; i < 50; i++) {
+                const column = document.createElement('div');
+                column.className = 'matrix-column';
+                column.style.left = Math.random() * 100 + '%';
+                column.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                column.style.animationDelay = Math.random() * 2 + 's';
+                
+                let content = '';
+                for (let j = 0; j < 20; j++) {
+                    content += chars[Math.floor(Math.random() * chars.length)] + '<br>';
+                }
+                column.innerHTML = content;
+                matrixBg.appendChild(column);
+            }
+        }
+
+        // Create Network Graph
+        function createNetworkGraph() {
+            const container = document.getElementById('networkGraph');
+            const nodes = 15;
+            
+            // Create nodes
+            for (let i = 0; i < nodes; i++) {
+                const node = document.createElement('div');
+                node.className = 'network-node';
+                node.style.left = Math.random() * 90 + '%';
+                node.style.top = Math.random() * 90 + '%';
+                node.style.animationDelay = Math.random() * 2 + 's';
+                container.appendChild(node);
+            }
+            
+            // Create connections
+            for (let i = 0; i < 10; i++) {
+                const connection = document.createElement('div');
+                connection.className = 'network-connection';
+                connection.style.left = Math.random() * 80 + '%';
+                connection.style.top = Math.random() * 80 + '%';
+                connection.style.width = Math.random() * 100 + 50 + 'px';
+                connection.style.transform = `rotate(${Math.random() * 360}deg)`;
+                connection.style.animationDelay = Math.random() * 3 + 's';
+                container.appendChild(connection);
+            }
+        }
+
+        // Create Attack Markers on World Map
+        function createAttackMarkers() {
+            const worldMap = document.getElementById('worldMap');
+            const attacks = [
+                {left: '20%', top: '30%'}, {left: '45%', top: '25%'},
+                {left: '70%', top: '35%'}, {left: '15%', top: '60%'},
+                {left: '80%', top: '45%'}, {left: '60%', top: '70%'},
+                {left: '35%', top: '80%'}
+            ];
+            
+            attacks.forEach((attack, i) => {
+                const marker = document.createElement('div');
+                marker.className = 'attack-marker';
+                marker.style.left = attack.left;
+                marker.style.top = attack.top;
+                marker.style.animationDelay = (i * 0.3) + 's';
+                worldMap.appendChild(marker);
+            });
+        }
+
+        // Generate Log Entries
+        function generateLogs() {
+            const logStream = document.getElementById('logStream');
+            const logTypes = [
+                { text: '[INFO] Firewall blocked suspicious packet from 192.168.1.100', class: '' },
+                { text: '[WARNING] Multiple failed login attempts detected', class: 'warning' },
+                { text: '[ERROR] Intrusion attempt from unknown IP: 203.45.67.89', class: 'error' },
+                { text: '[INFO] AI model updated with new threat signatures', class: '' },
+                { text: '[INFO] Vulnerability scan completed - 3 critical issues found', class: '' },
+                { text: '[WARNING] Unusual network traffic pattern detected', class: 'warning' },
+                { text: '[INFO] Backup process completed successfully', class: '' }
+            ];
+            
+            function addLog() {
+                const log = logTypes[Math.floor(Math.random() * logTypes.length)];
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${log.class}`;
+                logEntry.innerHTML = `[${timestamp}] ${log.text}`;
+                
+                logStream.insertBefore(logEntry, logStream.firstChild);
+                
+                // Keep only last 10 logs
+                while (logStream.children.length > 10) {
+                    logStream.removeChild(logStream.lastChild);
+                }
+            }
+            
+            // Add initial logs
+            for (let i = 0; i < 5; i++) {
+                setTimeout(addLog, i * 1000);
+            }
+            
+            // Continue adding logs
+            setInterval(addLog, 3000);
+        }
+
+        // Update Status Function (Original)
+        function updateStatus() {
+            fetch("hasil.txt?" + new Date().getTime())
+                .then(res => {
+                    if (!res.ok) throw new Error("HTTP error " + res.status);
+                    return res.text();
+                })
+                .then(data => {
+                    console.log("[DEBUG] Data fetched:\n" + data);
+                    let lines = data.trim().split("\n");
+                    let failed = 0, success = 0;
+                    
+                    lines.forEach(line => {
+                        if (line.startsWith("failed_login")) failed = parseInt(line.split(":")[1]);
+                        if (line.startsWith("successful_login")) success = parseInt(line.split(":")[1]);
+                    });
+                    
+                    document.getElementById('failedCount').innerText = failed;
+                    document.getElementById('successCount').innerText = success;
+                    
+                    // Update threat level based on failed attempts
+                    const threatLevel = failed > 100 ? 'CRITICAL' : failed > 50 ? 'HIGH' : failed > 20 ? 'MEDIUM' : 'NORMAL';
+                    document.getElementById('threatLevel').innerText = threatLevel;
+                    document.getElementById('threatLevel').style.color = 
+                        threatLevel === 'CRITICAL' ? '#ff4141' : 
+                        threatLevel === 'HIGH' ? 'orange' : 
+                        threatLevel === 'MEDIUM' ? 'yellow' : '#00ff41';
+                })
+                .catch(err => {
+                    console.error("[ERROR] Gagal membaca hasil.txt:", err);
+                    // Show simulated data when file is not available
+                    updateSimulatedData();
+                });
+        }
+
+        // Simulated Data Updates
+        function updateSimulatedData() {
+            // Simulate dynamic data
+            document.getElementById('failedCount').innerText = Math.floor(Math.random() * 100) + 50;
+            document.getElementById('successCount').innerText = Math.floor(Math.random() * 500) + 200;
+            document.getElementById('activeConnections').innerText = Math.floor(Math.random() * 100) + 200;
+            document.getElementById('threatsDetected').innerText = Math.floor(Math.random() * 20) + 5;
+            document.getElementById('activeAttacks').innerText = Math.floor(Math.random() * 15) + 3;
+            document.getElementById('blockedPackets').innerText = (Math.floor(Math.random() * 10000) + 10000).toLocaleString();
+            
+            // Update progress bars
+            const scanProgress = Math.floor(Math.random() * 30) + 70;
+            document.getElementById('scanProgress').innerText = scanProgress + '%';
+            document.getElementById('scanBar').style.width = scanProgress + '%';
+            
+            // Update network stats
+            document.getElementById('latency').innerText = Math.floor(Math.random() * 20) + 5 + 'ms';
+            document.getElementById('throughput').innerText = Math.floor(Math.random() * 200) + 700;
+        }
+
+        // Initialize everything
+        function init() {
+            createMatrixRain();
+            createNetworkGraph();
+            createAttackMarkers();
+            generateLogs();
+            updateStatus();
+            
+            // Update status every 5 seconds
+            setInterval(updateStatus, 5000);
+            
+            // Update simulated data every 10 seconds
+            setInterval(updateSimulatedData, 10000);
+        }
+
+        // Start when page loads
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

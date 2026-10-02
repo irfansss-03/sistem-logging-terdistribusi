@@ -1,0 +1,424 @@
+/* ======================================================
+   Advanced Cybersecurity Defense Center — Stylesheet
+   Sistem Logging Terdistribusi untuk Deteksi Serangan Jaringan
+   ====================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --cyan: #00f5ff;
+    --blue: #64b5f6;
+    --green: #00ff88;
+    --yellow: #ffcc00;
+    --orange: #ffa500;
+    --red: #ff4444;
+    --panel-bg: rgba(0, 13, 20, 0.9);
+}
+
+body {
+    font-family: 'Rajdhani', sans-serif;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+    color: #fff;
+}
+
+/* ── Latar: hujan biner ─────────────────────────────── */
+.binary-rain {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0;
+    animation: fade-in-rain 3s 1s forwards;
+}
+
+@keyframes fade-in-rain {
+    to { opacity: 0.35; }
+}
+
+.binary-column {
+    position: absolute;
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    color: #00ff41;
+    text-shadow: 0 0 5px #00ff41;
+    animation: rain-fall linear infinite;
+}
+
+@keyframes rain-fall {
+    0%   { transform: translateY(-100vh); opacity: 1; }
+    100% { transform: translateY(100vh); opacity: 0; }
+}
+
+/* ── Tata letak ─────────────────────────────────────── */
+.container {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    padding: 20px;
+    max-width: 1800px;
+    margin: 0 auto;
+}
+
+.header {
+    grid-column: 1 / -1;
+    text-align: center;
+    background: var(--panel-bg);
+    border: 1px solid var(--cyan);
+    border-radius: 15px;
+    padding: 28px 20px;
+    box-shadow: 0 0 30px rgba(0, 245, 255, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+.title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.3rem, 3vw, 2.5rem);
+    font-weight: 900;
+    color: var(--cyan);
+    text-shadow: 0 0 20px var(--cyan);
+    margin-bottom: 10px;
+    animation: glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+    0%, 100% { text-shadow: 0 0 20px var(--cyan); }
+    50%      { text-shadow: 0 0 30px var(--cyan), 0 0 40px var(--cyan); }
+}
+
+.subtitle {
+    font-size: 1.1rem;
+    color: var(--blue);
+    margin-bottom: 12px;
+}
+
+.data-source {
+    font-size: 0.85rem;
+    color: #7f9db9;
+}
+
+.data-source code {
+    font-family: 'Orbitron', monospace;
+    color: var(--cyan);
+}
+
+/* ── Panel ──────────────────────────────────────────── */
+.panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--cyan);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 0 20px rgba(0, 245, 255, 0.2);
+    backdrop-filter: blur(10px);
+    overflow: hidden;
+}
+
+.panel-wide {
+    grid-column: 1 / -1;
+}
+
+.panel-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.05rem;
+    color: var(--cyan);
+    margin-bottom: 16px;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+/* ── System status ──────────────────────────────────── */
+.system-status {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.05rem;
+    text-align: center;
+    margin: 10px 0 18px;
+    padding: 12px;
+    background: rgba(0, 245, 255, 0.1);
+    border: 1px solid rgba(0, 245, 255, 0.3);
+    border-radius: 10px;
+    animation: system-pulse 2s ease-in-out infinite;
+}
+
+@keyframes system-pulse {
+    0%, 100% { border-color: rgba(0, 245, 255, 0.3); }
+    50%      { border-color: rgba(0, 245, 255, 0.8); }
+}
+
+.status-counts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.count-box {
+    background: rgba(0, 245, 255, 0.06);
+    border: 1px solid rgba(0, 245, 255, 0.25);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+}
+
+.count-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.9rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.count-value.danger { color: var(--red); text-shadow: 0 0 12px var(--red); }
+.count-value.ok     { color: var(--green); text-shadow: 0 0 12px var(--green); }
+
+.count-label {
+    font-size: 0.75rem;
+    color: var(--blue);
+    letter-spacing: 1px;
+    margin-top: 4px;
+}
+
+.threat-level {
+    margin-top: 16px;
+    padding: 10px;
+    border-radius: 25px;
+    text-align: center;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.low      { background: rgba(0, 255, 136, 0.15); border: 1px solid var(--green);  color: var(--green); }
+.medium   { background: rgba(255, 204, 0, 0.15);  border: 1px solid var(--yellow); color: var(--yellow); }
+.high     { background: rgba(255, 165, 0, 0.15);  border: 1px solid var(--orange); color: var(--orange); }
+.critical { background: rgba(255, 68, 68, 0.15);  border: 1px solid var(--red);    color: var(--red); }
+
+/* ── Bar chart (timeline & top attacker) ────────────── */
+.bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 170px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 10px;
+}
+
+.bar-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+    gap: 2px;
+}
+
+.bar-pair {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+}
+
+.bar {
+    width: 45%;
+    max-width: 18px;
+    border-radius: 3px 3px 0 0;
+    transition: height 0.4s ease;
+    min-height: 2px;
+}
+
+.bar.failed  { background: linear-gradient(to top, #7a1f1f, var(--red)); box-shadow: 0 0 8px rgba(255,68,68,0.6); }
+.bar.success { background: linear-gradient(to top, #0f5c3a, var(--green)); box-shadow: 0 0 8px rgba(0,255,136,0.6); }
+
+.bar-label {
+    font-size: 0.65rem;
+    color: var(--blue);
+    font-family: 'Orbitron', monospace;
+}
+
+.legend {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin-top: 12px;
+    font-size: 0.78rem;
+    color: var(--blue);
+}
+
+.legend span::before {
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+.legend .lg-failed::before  { background: var(--red); }
+.legend .lg-success::before { background: var(--green); }
+
+/* ── Daftar bertingkat (top attacker / sumber) ──────── */
+.rank-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.rank-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: center;
+}
+
+.rank-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.82rem;
+    color: #cfe9ff;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rank-count {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.82rem;
+    color: var(--red);
+}
+
+.rank-bar {
+    grid-column: 1 / -1;
+    height: 6px;
+    background: rgba(255, 68, 68, 0.18);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.rank-bar > i {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--orange), var(--red));
+    border-radius: 3px;
+}
+
+/* ── Statistik ──────────────────────────────────────── */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.stat-item {
+    background: rgba(0, 245, 255, 0.06);
+    border: 1px solid rgba(0, 245, 255, 0.25);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+}
+
+.stat-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--cyan);
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 0.72rem;
+    color: var(--blue);
+    letter-spacing: 1px;
+}
+
+/* ── Info konfigurasi ───────────────────────────────── */
+.info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0, 245, 255, 0.05);
+    border: 1px solid rgba(0, 245, 255, 0.2);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 0.8rem;
+}
+
+.info-row .k { color: var(--blue); }
+.info-row .v { font-family: 'Orbitron', monospace; color: var(--cyan); font-size: 0.75rem; }
+
+/* ── Activity log ───────────────────────────────────── */
+.log-container {
+    height: 260px;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.log-entry {
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    border-left: 3px solid var(--cyan);
+    background: rgba(0, 245, 255, 0.08);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    border-radius: 0 5px 5px 0;
+}
+
+.log-entry .ts { color: #7f9db9; margin-right: 8px; }
+
+.log-entry.success { border-left-color: var(--green); background: rgba(0, 255, 136, 0.08); }
+.log-entry.failed  { border-left-color: var(--red);   background: rgba(255, 68, 68, 0.08); }
+
+/* ── Pesan kesalahan / kosong ───────────────────────── */
+.notice {
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    text-align: center;
+    background: rgba(255, 204, 0, 0.1);
+    border: 1px solid var(--yellow);
+    color: var(--yellow);
+}
+
+.notice.error {
+    background: rgba(255, 68, 68, 0.1);
+    border-color: var(--red);
+    color: var(--red);
+}
+
+/* ── Footer ─────────────────────────────────────────── */
+.footer {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 0.78rem;
+    color: #5f7d99;
+    padding: 6px 0 16px;
+}
+
+/* ── Responsif ──────────────────────────────────────── */
+@media (max-width: 1100px) {
+    .container { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 720px) {
+    .container { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+}

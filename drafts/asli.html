@@ -1,0 +1,28 @@
+<h2>Status Serangan</h2>
+<p id="status">Loading...</p>
+<script>
+function updateStatus() {
+    fetch("hasil.txt?" + new Date().getTime())
+    .then(res => {
+        if (!res.ok) throw new Error("HTTP error " + res.status);
+        return res.text();
+    })
+    .then(data => {
+        console.log("[DEBUG] Data fetched:\n" + data); // Log isi hasil.txt
+        let lines = data.trim().split("\n");
+        let failed = 0, success = 0;
+        lines.forEach(line => {
+            if (line.startsWith("failed_login")) failed = parseInt(line.split(":")[1]);
+            if (line.startsWith("successful_login")) success = parseInt(line.split(":")[1]);
+        });
+        let msg = Gagal: ${failed}, Berhasil: ${success};
+        document.getElementById("status").innerText = msg;
+    })
+    .catch(err => {
+        console.error("[ERROR] Gagal membaca hasil.txt:", err);
+        document.getElementById("status").innerText = "❌ Gagal membaca hasil.txt";
+    });
+}
+updateStatus();
+setInterval(updateStatus, 5000);
+</script>

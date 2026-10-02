@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Distributed Logging System - Network Attack Detection</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap');
+
+        :root {
+            --primary-blue: #00a2ff;
+            --secondary-blue: #64b5f6;
+            --accent-cyan: #00ffff;
+            --success-green: #00ff88;
+            --warning-yellow: #ffeb3b;
+            --danger-red: #ff4444;
+            --dark-bg: #0a0a0a;
+            --card-bg: rgba(15, 23, 42, 0.95);
+            --border-color: rgba(0, 162, 255, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #0e2954 100%);
+            min-height: 100vh;
+            color: #ffffff;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Advanced Animated Background */
+        .cyber-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(0, 162, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 162, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: grid-move 20s linear infinite;
+            z-index: -3;
+            opacity: 0.3;
+        }
+
+        @keyframes grid-move {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -2;
+        }
+
+        .floating-element {
+            position: absolute;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--primary-blue);
+            opacity: 0.3;
+            animation: float-diagonal 15s ease-in-out infinite;
+        }
+
+        @keyframes float-diagonal {
+            0% { transform: translate(-50px, 100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { transform: translate(100vw, -50px) rotate(360deg); opacity: 0; }
+        }
+
+        /* Main Layout */
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            grid-template-rows: auto 1fr;
+            min-height: 100vh;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            grid-row: 1 / -1;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 30px 20px;
+            backdrop-filter: blur(15px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--primary-blue), var(--accent-cyan), var(--secondary-blue), var(--primary-blue));
+            border-radius: 20px;
+            z-index: -1;
+            animation: border-rotate 4s linear infinite;
+        }
+
+        @keyframes border-rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo-icon {
+            font-size: 3rem;
+            color: var(--primary-blue);
+            margin-bottom: 10px;
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        .logo-text {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--secondary-blue);
+            text-shadow: 0 0 10px rgba(100, 181, 246, 0.5);
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 15px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: #ffffff;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(0, 162, 255, 0.2);
+            color: var(--primary-blue);
+            transform: translateX(5px);
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: var(--primary-blue);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .nav-link:hover::before, .nav-link.active::before {
+            transform: scaleY(1);
+        }
+
+        .nav-icon {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        /* Header */
+        .header {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 20px 30px;
+            backdrop-filter: blur(15px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--primary-blue);
+            text-shadow: 0 0 20px rgba(0, 162, 255, 0.5);
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--success-green);
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: var(--success-green);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success-green);
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.3); }
+        }
+
+        /* Main Content */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto 1fr;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 162, 255, 0.3);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--primary-blue), transparent);
+            animation: scan-line 2s linear infinite;
+        }
+
+        @keyframes scan-line {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .stat-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--secondary-blue);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-icon {
+            font-size: 1.5rem;
+            color: var(--primary-blue);
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 10px;
+            text-shadow: 0 0 15px rgba(0, 162, 255, 0.5);
+        }
+
+        .stat-change {
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .stat-change.positive {
+            color: var(--success-green);
+        }
+
+        .stat-change.negative {
+            color: var(--danger-red);
+        }
+
+        /* Alert Panel */
+        .alert-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .alert-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .alert-item {
+            background: rgba(255, 68, 68, 0.1);
+            border-left: 4px solid var(--danger-red);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            animation: alert-glow 3s ease-in-out infinite;
+        }
+
+        @keyframes alert-glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(255, 68, 68, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(255, 68, 68, 0.6); }
+        }
+
+        .alert-time {
+            font-size: 0.8rem;
+            color: var(--secondary-blue);
+            margin-bottom: 5px;
+        }
+
+        .alert-message {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        /* Real-time Chart */
+        .chart-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+
+        .chart-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 20px;
+        }
+
+        .chart-display {
+            height: 200px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-line {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary-blue), var(--accent-cyan));
+            animation: chart-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes chart-pulse {
+            0%, 100% { transform: scaleX(0.8); opacity: 0.7; }
+            50% { transform: scaleX(1); opacity: 1; }
+        }
+
+        /* Terminal Output */
+        .terminal {
+            background: #000000;
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--success-green);
+            height: 300px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .terminal::before {
+            content: 'SYSTEM LOG - LIVE MONITORING';
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            font-size: 0.7rem;
+            color: var(--secondary-blue);
+            font-weight: 600;
+        }
+
+        .terminal-content {
+            margin-top: 30px;
+        }
+
+        .terminal-line {
+            margin-bottom: 5px;
+            animation: type-writer 0.5s ease-in;
+        }
+
+        @keyframes type-writer {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .terminal-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            background: var(--success-green);
+            animation: cursor-blink 1s infinite;
+            margin-left: 2px;
+        }
+
+        @keyframes cursor-blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto 1fr;
+            }
+
+            .sidebar {
+                grid-row: 1;
+                grid-column: 1;
+            }
+
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 10px;
+                gap: 15px;
+            }
+
+            .sidebar {
+                padding: 20px 15px;
+            }
+
+            .header {
+                padding: 15px 20px;
+            }
+
+            .header-title {
+                font-size: 1.4rem;
+            }
+
+            .stat-value {
+                font-size: 2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-blue);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary-blue);
+        }
+
+        /* Danger and Success Variants */
+        .stat-card.danger {
+            border-color: var(--danger-red);
+        }
+
+        .stat-card.danger .stat-value {
+            color: var(--danger-red);
+            text-shadow: 0 0 15px rgba(255, 68, 68, 0.5);
+        }
+
+        .stat-card.success {
+            border-color: var(--success-green);
+        }
+
+        .stat-card.success .stat-value {
+            color: var(--success-green);
+            text-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+        }
+
+        /* Loading Animation */
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0, 162, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-blue);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="cyber-grid"></div>
+    <div class="floating-elements" id="floatingElements"></div>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">🛡️</div>
+                <div class="logo-text">CYBER SHIELD</div>
+            </div>
+            
+            <nav>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active">
+                            <span class="nav-icon">📊</span>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-icon">🚨</span>
+                            Deteksi Serangan
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-icon">📈</span>
+                            Analytics
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-icon">📋</span>
+                            Log History
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-icon">⚙️</span>
+                            Konfigurasi
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <span class="nav-icon">📑</span>
+                            Laporan
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Header -->
+        <div class="header">
+            <h1 class="header-title">SISTEM LOGGING TERDISTRIBUSI</h1>
+            <div class="header-controls">
+                <div class="status-indicator" id="systemStatus">
+                    <div class="status-dot"></div>
+                    <span>SISTEM AKTIF</span>
+                </div>
+                <div style="font-family: 'JetBrains Mono', monospace; color: var(--secondary-blue); font-size: 0.9rem;" id="currentTime">
+                    --:--:--
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card danger">
+                    <div class="stat-header">
+                        <div class="stat-title">Serangan Gagal</div>
+                        <div class="stat-icon">🛡️</div>
+                    </div>
+                    <div class="stat-value" id="failedAttacks">0</div>
+                    <div class="stat-change positive">
+                        <span>↑</span>
+                        <span id="failedChange">+0</span>
+                        <span>dalam 5 menit terakhir</span>
+                    </div>
+                </div>
+
+                <div class="stat-card success">
+                    <div class="stat-header">
+                        <div class="stat-title">Login Berhasil</div>
+                        <div class="stat-icon">✅</div>
+                    </div>
+                    <div class="stat-value" id="successfulLogins">0</div>
+                    <div class="stat-change positive">
+                        <span>↑</span>
+                        <span id="successChange">+0</span>
+                        <span>dalam 5 menit terakhir</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Tingkat Keamanan</div>
+                        <div class="stat-icon">🔒</div>
+                    </div>
+                    <div class="stat-value" id="securityLevel">TINGGI</div>
+                    <div class="stat-change positive">
+                        <span>🟢</span>
+                        <span>Sistem Stabil</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Aktivitas Real-time</div>
+                        <div class="stat-icon">⚡</div>
+                    </div>
+                    <div class="stat-value" id="activeConnections">0</div>
+                    <div class="stat-change positive">
+                        <span class="loading-spinner"></span>
+                        <span>Monitoring...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alert Panel -->
+            <div class="alert-panel">
+                <div class="alert-header">
+                    <h3 class="alert-title">🚨 PERINGATAN KEAMANAN</h3>
+                    <div style="color: var(--secondary-blue); font-size: 0.9rem;">Live Updates</div>
+                </div>
+                <div id="alertContainer">
+                    <div class="alert-item">
+                        <div class="alert-time">2024-06-12 14:32:15</div>
+                        <div class="alert-message">Deteksi percobaan brute force dari IP: 192.168.1.100</div>
+                    </div>
+                    <div class="alert-item">
+                        <div class="alert-time">2024-06-12 14:30:42</div>
+                        <div class="alert-message">Login gagal berulang kali dari user: admin</div>
+                    </div>
+                    <div class="alert-item">
+                        <div class="alert-time">2024-06-12 14:28:19</div>
+                        <div class="alert-message">Anomali lalu lintas jaringan terdeteksi</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart Container -->
+            <div class="chart-container">
+                <h3 class="chart-title">📈 GRAFIK SERANGAN REAL-TIME</h3>
+                <div class="chart-display">
+                    <canvas id="attackChart" width="100%" height="200"></canvas>
+                    <div class="chart-line"></div>
+                </div>
+            </div>
+
+            <!-- Terminal -->
+            <div class="terminal">
+                <div class="terminal-content" id="terminalContent">
+                    <div class="terminal-line">[INFO] Sistem logging terdistribusi aktif...</div>
+                    <div class="terminal-line">[MONITOR] Memindai aktivitas jaringan...</div>
+                    <div class="terminal-line">[SECURITY] Firewall rules updated</div>
+                    <div class="terminal-line">[ALERT] Monitoring IP suspicious activity</div>
+                    <div class="terminal-line">[INFO] Database connection established</div>
+                    <div class="terminal-line">[SCAN] Performing security audit...</div>
+                    <div class="terminal-line">[READY] System ready for monitoring<span class="terminal-cursor"></span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let previousFailed = 0;
+        let previousSuccess = 0;
+        let alertCount = 0;
+        let chartData = [];
+        
+        // Initialize floating background elements
+        function initFloatingElements() {
+            const container = document.getElementById('floatingElements');
+            const elements = ['0x1A2B', '0xFF00', 'SECURE', 'ENCRYPT', '0x4C8D', 'HASH', '0x9E3F', 'LOG', 'SCAN', '0x7B1C'];
+            
+            elements.forEach((text, index) => {
+                const element = document.createElement('div');
+                element.className = 'floating-element';
+                element.textContent = text;
+                element.style.animationDelay = `${index * 2}s`;
+                element.style.left = `${Math.random() * 100}%`;
+                container.appendChild(element);
+            });
+        }
+
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('id-ID', { 
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+
+        // Add terminal log
+        function addTerminalLog(message, type = 'INFO') {
+            const terminal = document.getElementById('terminalContent');
+            const timestamp = new Date().toLocaleTimeString('id-ID', { hour12: false });
+            const logLine = document.createElement('div');
+            logLine.className = 'terminal-line';
+            logLine.innerHTML = `[${type}] ${timestamp} - ${message}`;
+            
+            // Remove cursor from last line
+            const cursor = terminal.querySelector('.terminal-cursor');
+            if (cursor) cursor.remove();
+            
+            // Add new line
+            terminal.appendChild(logLine);
+            
+            // Add cursor to new line
+            logLine.innerHTML += '<span class="terminal-cursor"></span>';
+            
+            // Scroll to bottom
+            terminal.scrollTop = terminal.scrollHeight;
+            
+            // Keep only last 20 lines
+            const lines = terminal.querySelectorAll('.terminal-line');
+            if (lines.length > 20) {
+                lines[0].remove();
+            }
+        }
+
+        // Add security alert
+        function addSecurityAlert(message) {
+            const alertContainer = document.getElementById('alertContainer');
+            const timestamp = new Date().toLocaleString('id-ID');
+            
+            const alertItem = document.createElement('div');
+            alertItem.className = 'alert-item';
+            alertItem.innerHTML = `
+                <div class="alert-time">${timestamp}</div>
+                <div class="alert-message">${message}</div>
+            `;
+            
+            // Add to top
+            alertContainer.insertBefore(alertItem, alertContainer.firstChild);
+            
+            // Keep only last 10 alerts
+            const alerts = alertContainer.querySelectorAll('.alert-item');
+            if (alerts.length > 10) {
+                alerts[alerts.length - 1].remove();
+            }
+            
+            // Add terminal log
+            addTerminalLog(message, 'ALERT');
+        }
+
+        // Simulate chart animation
+        function animateChart() {
+            const canvas = document.getElementById('attackChart');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw grid
+            ctx.strokeStyle = 'rgba(0, 162, 255, 0.1)';
+            ctx.lineWidth = 1;
+            
+            for (let i = 0; i < width; i += 50) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, height);
+                ctx.stroke();
+            }
+            
+            for (let i = 0; i < height; i += 30) {
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(width, i);
+                ctx.stroke();
+            }
+            
+            // Draw animated line
+            const time = Date.now() * 0.002;
+            ctx.strokeStyle = '#00a2ff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            for (let x = 0; x < width; x += 2) {
+                const y = height/2 + Math.sin((x + time * 50) * 0.02) * 30 + 
+                         Math.sin((x + time * 30) * 0.05) * 20 +
+                         Math.random() * 10;
+                if (x === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
+        }
+
+        // Update security level based on attack data
+        function updateSecurityLevel(failed, success) {
+            const securityElement = document.getElementById('securityLevel');
+            const ratio = failed > 0 ? failed / (failed + success) : 0;
+            
+            if (ratio > 0.8) {
+                sec

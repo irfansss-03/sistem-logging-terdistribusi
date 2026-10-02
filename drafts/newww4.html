@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status Serangan Real-Time</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: #0a1428;
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            background: rgba(0, 20, 40, 0.8);
+            border: 2px solid #00d4ff;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .title {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: #00d4ff;
+            text-shadow: 0 0 20px #00d4ff;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .shield-icon {
+            font-size: 2.5rem;
+        }
+
+        /* Status System */
+        .status-panel {
+            background: rgba(0, 20, 40, 0.8);
+            border: 2px solid #00d4ff;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+        }
+
+        .status-display {
+            background: rgba(10, 30, 50, 0.8);
+            border: 1px solid #00d4ff;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #ffd700;
+            margin-bottom: 30px;
+            box-shadow: inset 0 0 20px rgba(0, 212, 255, 0.1);
+        }
+
+        /* Attack Stats */
+        .attack-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: rgba(10, 30, 50, 0.8);
+            border: 1px solid #00d4ff;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00d4ff, transparent);
+            animation: scan 3s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .failed-box {
+            border-color: #ff4444;
+        }
+
+        .failed-box .stat-icon {
+            color: #ff4444;
+        }
+
+        .failed-box::before {
+            background: linear-gradient(90deg, transparent, #ff4444, transparent);
+        }
+
+        .success-box {
+            border-color: #00ff88;
+        }
+
+        .success-box .stat-icon {
+            color: #00ff88;
+        }
+
+        .success-box::before {
+            background: linear-gradient(90deg, transparent, #00ff88, transparent);
+        }
+
+        .total-box {
+            border-color: #ffd700;
+        }
+
+        .total-box .stat-icon {
+            color: #ffd700;
+        }
+
+        .total-box::before {
+            background: linear-gradient(90deg, transparent, #ffd700, transparent);
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .failed-box .stat-value {
+            color: #ff4444;
+        }
+
+        .success-box .stat-value {
+            color: #00ff88;
+        }
+
+        .total-box .stat-value {
+            color: #ffd700;
+        }
+
+        .failed-box .stat-label {
+            color: #ff9999;
+        }
+
+        .success-box .stat-label {
+            color: #99ffcc;
+        }
+
+        .total-box .stat-label {
+            color: #ffe066;
+        }
+
+        /* Panel Grid */
+        .panel-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: rgba(0, 20, 40, 0.8);
+            border: 2px solid #00d4ff;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+        }
+
+        .panel-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.1rem;
+            color: #00d4ff;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* Attack Map */
+        .attack-map {
+            height: 250px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .world-map {
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 500"><rect width="1000" height="500" fill="%23001122"/><circle cx="200" cy="150" r="15" fill="%23ff4444" opacity="0.8"/><circle cx="800" cy="200" r="12" fill="%23ff4444" opacity="0.8"/><circle cx="400" cy="300" r="18" fill="%23ff4444" opacity="0.8"/><circle cx="600" cy="100" r="14" fill="%23ff4444" opacity="0.8"/><circle cx="100" cy="400" r="16" fill="%23ff4444" opacity="0.8"/></svg>') no-repeat center;
+            background-size: cover;
+        }
+
+        .attack-point {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: #ff4444;
+            border-radius: 50%;
+            animation: attack-pulse 2s ease-in-out infinite;
+            cursor: pointer;
+        }
+
+        @keyframes attack-pulse {
+            0%, 100% { 
+                box-shadow: 0 0 10px #ff4444; 
+                transform: scale(1);
+            }
+            50% { 
+                box-shadow: 0 0 25px #ff4444, 0 0 35px #ff4444; 
+                transform: scale(1.2);
+            }
+        }
+
+        /* Activity Graph */
+        .activity-graph {
+            height: 200px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            display: flex;
+            align-items: end;
+            padding: 10px;
+            gap: 8px;
+        }
+
+        .graph-bar {
+            flex: 1;
+            background: linear-gradient(to top, #00d4ff, #64b5f6);
+            border-radius: 2px;
+            animation: bar-grow 3s ease-in-out infinite;
+            min-height: 20px;
+        }
+
+        @keyframes bar-grow {
+            0%, 100% { height: 20%; }
+            50% { height: 80%; }
+        }
+
+        /* Log Activity */
+        .log-container {
+            height: 250px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 10px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .log-entry {
+            padding: 8px;
+            margin: 5px 0;
+            border-left: 3px solid #00d4ff;
+            background: rgba(0, 212, 255, 0.1);
+            font-family: 'Orbitron', monospace;
+            font-size: 0.8rem;
+            animation: log-appear 0.5s ease-in-out;
+            border-radius: 0 5px 5px 0;
+        }
+
+        @keyframes log-appear {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .log-entry.success { 
+            border-left-color: #00ff88; 
+            background: rgba(0, 255, 136, 0.1); 
+        }
+
+        .log-entry.failed { 
+            border-left-color: #ff4444; 
+            background: rgba(255, 68, 68, 0.1); 
+        }
+
+        /* Security Systems */
+        .security-systems {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .security-item {
+            text-align: center;
+            flex: 1;
+        }
+
+        .security-circle {
+            width: 80px;
+            height: 80px;
+            border: 3px solid #00d4ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            position: relative;
+            animation: security-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes security-pulse {
+            0%, 100% { 
+                border-color: #00d4ff; 
+                box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+            }
+            25% { 
+                border-color: #00ff88; 
+                box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            }
+            50% { 
+                border-color: #ffd700; 
+                box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            }
+            75% { 
+                border-color: #ff4444; 
+                box-shadow: 0 0 20px rgba(255, 68, 68, 0.5);
+            }
+        }
+
+        .security-icon {
+            font-size: 2rem;
+        }
+
+        .security-label {
+            color: #00d4ff;
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .security-status {
+            font-size: 0.8rem;
+            color: #64b5f6;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: rgba(0, 20, 40, 0.95);
+            margin: 15% auto;
+            padding: 20px;
+            border: 2px solid #00d4ff;
+            border-radius: 15px;
+            width: 300px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover { color: #00d4ff; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .panel-grid {
+                grid-template-columns: 1fr;
+            }
+            .attack-stats {
+                grid-template-columns: 1fr;
+            }
+            .title {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="title">
+                <span class="shield-icon">🛡️</span>
+                STATUS SERANGAN REAL-TIME
+            </h1>
+        </div>
+
+        <!-- Status Panel -->
+        <div class="status-panel">
+            <div class="status-display" id="status">⚡ MEMUAT SISTEM...</div>
+            
+            <div class="attack-stats">
+                <div class="stat-box failed-box">
+                    <div class="stat-icon">🚫</div>
+                    <div class="stat-value" id="failedCount">0</div>
+                    <div class="stat-label">Serangan Gagal</div>
+                </div>
+                <div class="stat-box success-box">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-value" id="successCount">0</div>
+                    <div class="stat-label">Berhasil Masuk</div>
+                </div>
+                <div class="stat-box total-box">
+                    <div class="stat-icon">⚔️</div>
+                    <div class="stat-value" id="totalAttacks">0</div>
+                    <div class="stat-label">Total Serangan</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Grid -->
+        <div class="panel-grid">
+            <!-- Attack Map -->
+            <div class="panel">
+                <h3 class="panel-title">PETA SERANGAN GLOBAL</h3>
+                <div class="attack-map">
+                    <div class="world-map"></div>
+                    <div class="attack-point" style="top: 30%; left: 20%;" onclick="showAttackInfo('China')"></div>
+                    <div class="attack-point" style="top: 40%; left: 80%;" onclick="showAttackInfo('Russia')"></div>
+                    <div class="attack-point" style="top: 60%; left: 40%;" onclick="showAttackInfo('Iran')"></div>
+                    <div class="attack-point" style="top: 20%; left: 60%;" onclick="showAttackInfo('North Korea')"></div>
+                    <div class="attack-point" style="top: 80%; left: 10%;" onclick="showAttackInfo('Brazil')"></div>
+                </div>
+            </div>
+
+            <!-- Activity Graph -->
+            <div class="panel">
+                <h3 class="panel-title">GRAFIK AKTIVITAS JARINGAN</h3>
+                <div class="activity-graph" id="activityGraph">
+                    <div class="graph-bar" style="animation-delay: 0s;"></div>
+                    <div class="graph-bar" style="animation-delay: 0.3s;"></div>
+                    <div class="graph-bar" style="animation-delay: 0.6s;"></div>
+                    <div class="graph-bar" style="animation-delay: 0.9s;"></div>
+                    <div class="graph-bar" style="animation-delay: 1.2s;"></div>
+                    <div class="graph-bar" style="animation-delay: 1.5s;"></div>
+                    <div class="graph-bar" style="animation-delay: 1.8s;"></div>
+                    <div class="graph-bar" style="animation-delay: 2.1s;"></div>
+                </div>
+            </div>
+
+            <!-- Security Systems -->
+            <div class="panel">
+                <h3 class="panel-title">SISTEM KEAMANAN</h3>
+                <div class="security-systems">
+                    <div class="security-item">
+                        <div class="security-circle">
+                            <div class="security-icon">🛡️</div>
+                        </div>
+                        <div class="security-label">FIREWALL</div>
+                        <div class="security-status">
+                            <div>Aktif: <span style="color: #00ff88;">ON</span></div>
+                        </div>
+                    </div>
+                    <div class="security-item">
+                        <div class="security-circle">
+                            <div class="security-icon">🤖</div>
+                        </div>
+                        <div class="security-label">AI DETECTION</div>
+                        <div class="security-status">
+                            <div>Status: <span style="color: #00ff88;">AKTIF</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Log Activity -->
+            <div class="panel">
+                <h3 class="panel-title">LOG AKTIVITAS REAL-TIME</h3>
+                <div class="log-container" id="logContainer">
+                    <div class="log-entry">🔍 AI Threat Detection: Scanning network...</div>
+                    <div class="log-entry">🛡️ Firewall Defense: Active protection enabled</div>
+                    <div class="log-entry">🔍 Vulnerability Scanner: System check completed</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="attackModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">Serangan Terdeteksi</h2>
+            <p id="modalContent">Detail serangan akan ditampilkan di sini.</p>
+        </div>
+    </div>
+
+    <script>
+        // Update system status
+        function updateStatus() {
+            fetch("hasil.txt?" + new Date().getTime())
+            .then(res => {
+                if (!res.ok) throw new Error("HTTP error " + res.status);
+                return res.text();
+            })
+            .then(data => {
+                let lines = data.trim().split("\n");
+                let failed = 0, success = 0;
+
+                lines.forEach(line => {
+                    if (line.startsWith("failed_login")) failed = parseInt(line.split(":")[1]);
+                    if (line.startsWith("successful_login")) success = parseInt(line.split(":")[1]);
+                });
+
+                // Update main status
+                let msg = `🔒 GAGAL: ${failed} | ✅ BERHASIL: ${success}`;
+                document.getElementById("status").innerHTML = msg;
+
+                // Update counters
+                document.getElementById("failedCount").textContent = failed;
+                document.getElementById("successCount").textContent = success;
+                document.getElementById("totalAttacks").textContent = failed + success;
+
+                // Add to log
+                addLogEntry(failed > 0 ? 'failed' : 'success', 
+                          `Deteksi: ${failed} serangan gagal, ${success} akses berhasil`);
+            })
+            .catch(err => {
+                console.error("Error:", err);
+                document.getElementById("status").innerHTML = "❌ KONEKSI TERPUTUS";
+                addLogEntry('failed', 'Koneksi ke sistem monitoring terputus');
+            });
+        }
+
+        // Add log entry
+        function addLogEntry(type, message) {
+            const container = document.getElementById('logContainer');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            
+            container.insertBefore(entry, container.firstChild);
+            
+            // Keep only last 10 entries
+            while (container.children.length > 10) {
+                container.removeChild(container.lastChild);
+            }
+        }
+
+        // Show attack info modal
+        function showAttackInfo(country) {
+            const modal = document.getElementById('attackModal');
+            const title = document.getElementById('modalTitle');
+            const content = document.getElementById('modalContent');
+            
+            title.textContent = `Serangan dari ${country}`;
+            content.innerHTML = `
+                <p>IP Origin: ${getRandomIP()}</p>
+                <p>Jenis Serangan: ${getRandomAttackType()}</p>
+                <p>Tingkat Bahaya: ${getRandomThreat()}</p>
+                <p>Status: Diblokir oleh Firewall</p>
+            `;
+            
+            modal.style.display = 'block';
+            addLogEntry('failed', `Serangan dari ${country} berhasil diblokir`);
+        }
+
+        // Helper functions
+        function getRandomIP() {
+            return `${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`;
+        }
+
+        function getRandomAttackType() {
+            const types = ['DDoS', 'Brute Force', 'SQL Injection', 'Port Scanning', 'Malware'];
+            return types[Math.floor(Math.random() * types.length)];
+        }
+
+        function getRandomThreat() {
+            const threats = ['Rendah', 'Sedang', 'Tinggi', 'Kritis'];
+            return threats[Math.floor(Math.random() * threats.length)];
+        }
+
+        // Generate random log entries
+        function generateRandomLogs() {
+            const logs = [
+                '🔍 AI Threat Detection: Anomali terdeteksi',
+                '🛡️ Firewall Defense: Paket mencurigakan diblokir',
+                '🔍 Vulnerability Scanner: Pemindaian keamanan selesai',
+                '⚡ System Monitor: Semua layanan berjalan normal',
+                '🚨 Intrusion Detection: Percobaan akses ilegal',
+                '🔒 Access Control: Otentikasi berhasil'
+            ];
+            
+            const randomLog = logs[Math.floor(Math.random() * logs.length)];
+            addLogEntry(Math.random() > 0.7 ? 'failed' : 'success', randomLog);
+        }
+
+        // Modal close event
+        document.querySelector('.close').onclick = function() {
+            document.getElementById('attackModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('attackModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Initialize
+        updateStatus();
+        
+        // Set intervals
+        setInterval(updateStatus, 5000);
+        setInterval(generateRandomLogs, 7000);
+    </script>
+</body>
+</html>

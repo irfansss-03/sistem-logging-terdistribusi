@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Cybersecurity Defense Center</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="binary-rain" id="binaryRain"></div>
+
+<div class="container">
+
+    <!-- ══════════════ HEADER ══════════════ -->
+    <header class="header">
+        <h1 class="title">ADVANCED CYBERSECURITY DEFENSE CENTER</h1>
+        <p class="subtitle">Sistem Logging Terdistribusi untuk Deteksi Serangan Jaringan</p>
+        <p class="data-source">
+            Sumber data: <code>hasil.txt</code> (output Hadoop MapReduce) &amp;
+            <code>logs.txt</code> (log dari REST API) &middot;
+            <span id="last-update">memuat…</span>
+        </p>
+    </header>
+
+    <!-- ══════════════ STATUS SISTEM ══════════════ -->
+    <section class="panel">
+        <h2 class="panel-title">SYSTEM STATUS</h2>
+        <div class="system-status" id="status-line">MEMUAT…</div>
+        <div class="status-counts">
+            <div class="count-box">
+                <div class="count-value danger" id="stat-failed">–</div>
+                <div class="count-label">FAILED LOGINS</div>
+            </div>
+            <div class="count-box">
+                <div class="count-value ok" id="stat-success">–</div>
+                <div class="count-label">SUCCESSFUL LOGINS</div>
+            </div>
+        </div>
+        <div class="threat-level low" id="threat-level">THREAT LEVEL: –</div>
+    </section>
+
+    <!-- ══════════════ TIMELINE ══════════════ -->
+    <section class="panel">
+        <h2 class="panel-title">THREAT TIMELINE</h2>
+        <div class="bar-chart" id="timeline-chart">
+            <div class="notice">Menunggu data…</div>
+        </div>
+        <div class="legend">
+            <span class="lg-failed">Failed</span>
+            <span class="lg-success">Successful</span>
+        </div>
+    </section>
+
+    <!-- ══════════════ KONFIGURASI ══════════════ -->
+    <section class="panel">
+        <h2 class="panel-title">KONFIGURASI SISTEM</h2>
+        <div class="info-list">
+            <div class="info-row"><span class="k">REST API</span><span class="v">POST · GET /logs</span></div>
+            <div class="info-row"><span class="k">Port server</span><span class="v">3000</span></div>
+            <div class="info-row"><span class="k">Integritas log</span><span class="v">SHA-256</span></div>
+            <div class="info-row"><span class="k">Pemrosesan</span><span class="v">Hadoop MapReduce</span></div>
+            <div class="info-row"><span class="k">Penyimpanan</span><span class="v">logs.txt (JSON Lines)</span></div>
+            <div class="info-row"><span class="k">Refresh dashboard</span><span class="v">15 detik</span></div>
+        </div>
+    </section>
+
+    <!-- ══════════════ TOP SUMBER SERANGAN ══════════════ -->
+    <section class="panel">
+        <h2 class="panel-title">TOP SUMBER SERANGAN</h2>
+        <div class="rank-list" id="attacker-list">
+            <div class="notice">Menunggu data…</div>
+        </div>
+    </section>
+
+    <!-- ══════════════ RINGKASAN DETEKSI ══════════════ -->
+    <section class="panel">
+        <h2 class="panel-title">RINGKASAN DETEKSI</h2>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value" id="sum-failed">–</div>
+                <div class="stat-label">FAILED LOGIN</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="sum-success">–</div>
+                <div class="stat-label">SUCCESSFUL LOGIN</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="sum-total">–</div>
+                <div class="stat-label">TOTAL LOG</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="sum-ratio">–</div>
+                <div class="stat-label">RASIO GAGAL</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══════════════ STATISTIK LOG ══════════════ -->
+    <section class="panel">
+        <h2 class="panel-title">STATISTIK LOG</h2>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value" id="log-total">–</div>
+                <div class="stat-label">ENTRI DI logs.txt</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="log-sources">–</div>
+                <div class="stat-label">SUMBER UNIK</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="log-attackers">–</div>
+                <div class="stat-label">IP PENYERANG</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="log-window">–</div>
+                <div class="stat-label">PERIODE DATA</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══════════════ ACTIVITY LOG ══════════════ -->
+    <section class="panel panel-wide">
+        <h2 class="panel-title">ACTIVITY LOG</h2>
+        <div class="log-container" id="log-container">
+            <div class="notice">Menunggu data…</div>
+        </div>
+    </section>
+
+    <div class="footer">
+        Praktikum Sistem Terdistribusi &middot;
+        Achmed Nazriel L. (2423600003) &amp; Syafan Aditya I. (2423600004)
+    </div>
+
+</div>
+
+<script>
+/* ======================================================
+   Dashboard — seluruh angka dihitung dari data nyata:
+     • hasil.txt → output Hadoop MapReduce
+     • logs.txt  → log yang diterima REST API (JSON Lines)
+   Tidak ada nilai statis / tiruan.
+   ====================================================== */
+
+const REFRESH_MS = 15000;
+
+/* ── Latar: hujan biner ─────────────────────────────── */
+(function initRain() {
+    const rain = document.getElementById('binaryRain');
+    const total = Math.min(28, Math.floor(window.innerWidth / 50));
+
+    for (let i = 0; i < total; i++) {
+        const col = document.createElement('div');
+        col.className = 'binary-column';
+        col.style.left = `${Math.random() * 100}%`;
+        col.style.animationDuration = `${6 + Math.random() * 8}s`;
+        col.style.animationDelay = `${Math.random() * 5}s`;
+        col.textContent = Array.from({ length: 24 }, () => (Math.random() > 0.5 ? '1' : '0')).join('');
+        rain.appendChild(col);
+    }
+})();
+
+/* ── Pengambilan data ───────────────────────────────── */
+async function fetchText(url) {
+    const res = await fetch(`${url}?${Date.now()}`);   // cache-busting
+    if (!res.ok) throw new Error(`${url} → HTTP ${res.status}`);
+    return res.text();
+}
+
+function parseHasil(text) {
+    const out = { failed: 0, success: 0 };
+    for (const line of text.split('\n')) {
+        const m = line.match(/(failed_login|successful_login)\s*:\s*(\d+)/);
+        if (!m) continue;
+        const value = parseInt(m[2], 10);
+        if (m[1] === 'failed_login') out.failed = value;
+        else out.success = value;
+    }
+    return out;
+}
+
+function parseLogs(text) {
+    const entries = [];
+    for (const line of text.split('\n')) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        try { entries.push(JSON.parse(trimmed)); }
+        catch { /* lewati baris yang rusak */ }
+    }
+    return entries;
+}
+
+/* ── Klasifikasi & ekstraksi ────────────────────────── */
+function classify(message) {
+    const m = String(message || '').toLowerCase();
+    if (m.includes('failed')) return 'failed';
+    if (m.includes('successful')) return 'success';
+    return 'other';
+}
+
+function extractIp(message) {
+    const m = String(message || '').match(/from\s+([0-9a-fA-F.:]+)/);
+    return m ? m[1] : null;
+}
+
+/* ── Analisis ───────────────────────────────────────── */
+function analyze(entries) {
+    const stats = {
+        failed: 0, success: 0,
+        sources: new Map(),      // sumber → {failed, success}
+        attackers: new Map(),    // IP / sumber → jumlah gagal
+        buckets: new Map(),      // "HH:MM" → {failed, success}
+        last: null, first: null,
+        total: entries.length,
+    };
+
+    for (const entry of entries) {
+        const kind = classify(entry.message);
+        if (kind === 'failed') stats.failed++;
+        else if (kind === 'success') stats.success++;
+
+        const source = entry.source || 'tidak diketahui';
+        if (!stats.sources.has(source)) stats.sources.set(source, { failed: 0, success: 0 });
+        const s = stats.sources.get(source);
+        if (kind === 'failed') s.failed++;
+        else if (kind === 'success') s.success++;
+
+        if (kind === 'failed') {
+            const key = extractIp(entry.message) || source;
+            stats.attackers.set(key, (stats.attackers.get(key) || 0) + 1);
+        }
+
+        const ts = entry.timestamp || '';
+        const bucket = ts.slice(11, 16) || '--:--';
+        if (!stats.buckets.has(bucket)) stats.buckets.set(bucket, { failed: 0, success: 0 });
+        const b = stats.buckets.get(bucket);
+        if (kind === 'failed') b.failed++;
+        else if (kind === 'success') b.success++;
+
+        if (ts) {
+            if (!stats.first || ts < stats.first) stats.first = ts;
+            if (!stats.last || ts > stats.last) stats.last = ts;
+        }
+    }
+
+    return stats;
+}
+
+function threatLevel(failed) {
+    if (failed === 0) return { label: 'LOW', cls: 'low' };
+    if (failed <= 2) return { label: 'MEDIUM', cls: 'medium' };
+    if (failed <= 5) return { label: 'HIGH', cls: 'high' };
+    return { label: 'CRITICAL', cls: 'critical' };
+}
+
+function formatClock(iso) {
+    return iso ? iso.slice(11, 19) : '–';
+}
+
+/* ── Render ─────────────────────────────────────────── */
+function render(result) {
+    const { hasil, stats } = result;
+    const level = threatLevel(hasil.failed);
+
+    // Status & threat level
+    document.getElementById('stat-failed').textContent = hasil.failed;
+    document.getElementById('stat-success').textContent = hasil.success;
+    document.getElementById('status-line').textContent =
+        `DEFENSE ACTIVE | BLOCKED: ${hasil.failed} | AUTHORIZED: ${hasil.success}`;
+
+    const threatEl = document.getElementById('threat-level');
+    threatEl.className = `threat-level ${level.cls}`;
+    threatEl.textContent = `THREAT LEVEL: ${level.label}`;
+
+    document.getElementById('last-update').textContent =
+        `diperbarui ${new Date().toLocaleTimeString('id-ID')}`;
+
+    // Ringkasan deteksi
+    const totalHasil = hasil.failed + hasil.success;
+    document.getElementById('sum-failed').textContent = hasil.failed;
+    document.getElementById('sum-success').textContent = hasil.success;
+    document.getElementById('sum-total').textContent = totalHasil;
+    document.getElementById('sum-ratio').textContent =
+        totalHasil ? `${Math.round((hasil.failed / totalHasil) * 100)}%` : '0%';
+
+    // Statistik log
+    document.getElementById('log-total').textContent = stats.total;
+    document.getElementById('log-sources').textContent = stats.sources.size;
+    document.getElementById('log-attackers').textContent = stats.attackers.size;
+    document.getElementById('log-window').textContent =
+        stats.first && stats.last
+            ? `${formatClock(stats.first)}–${formatClock(stats.last)}`
+            : '–';
+
+    renderTimeline(stats.buckets);
+    renderAttackers(stats.attackers);
+    renderActivityLog(result.entries);
+}
+
+function renderTimeline(buckets) {
+    const host = document.getElementById('timeline-chart');
+
+    if (buckets.size === 0) {
+        host.innerHTML = '<div class="notice">Belum ada log pada logs.txt</div>';
+        return;
+    }
+
+    // Ambil 12 slot waktu terakhir (kunci "HH:MM" sudah urut secara leksikografis).
+    const keys = [...buckets.keys()].sort().slice(-12);
+    const max = Math.max(
+        1,
+        ...keys.map((k) => {
+            const b = buckets.get(k);
+            return Math.max(b.failed, b.success);
+        })
+    );
+
+    host.innerHTML = keys.map((key) => {
+        const b = buckets.get(key);
+        const hFailed = Math.round((b.failed / max) * 100);
+        const hSuccess = Math.round((b.success / max) * 100);
+        return `
+            <div class="bar-group" title="${key} — failed: ${b.failed}, successful: ${b.success}">
+                <div class="bar-pair">
+                    <div class="bar failed" style="height:${hFailed}%"></div>
+                    <div class="bar success" style="height:${hSuccess}%"></div>
+                </div>
+                <div class="bar-label">${key}</div>
+            </div>`;
+    }).join('');
+}
+
+function renderAttackers(attackers) {
+    const host = document.getElementById('attacker-list');
+
+    if (attackers.size === 0) {
+        host.innerHTML = '<div class="notice">Tidak ada percobaan login gagal</div>';
+        return;
+    }
+
+    const rows = [...attackers.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
+    const max = rows[0][1];
+
+    host.innerHTML = rows.map(([name, count]) => `
+        <div class="rank-row">
+            <span class="rank-name">${escapeHtml(name)}</span>
+            <span class="rank-count">${count}×</span>
+            <div class="rank-bar"><i style="width:${Math.round((count / max) * 100)}%"></i></div>
+        </div>`).join('');
+}
+
+function renderActivityLog(entries) {
+    const host = document.getElementById('log-container');
+
+    if (!entries.length) {
+        host.innerHTML = '<div class="notice">Belum ada log pada logs.txt</div>';
+        return;
+    }
+
+    // Terbaru di atas.
+    const rows = [...entries].sort((a, b) =>
+        String(b.timestamp || '').localeCompare(String(a.timestamp || ''))
+    ).slice(0, 60);
+
+    host.innerHTML = rows.map((entry) => {
+        const kind = classify(entry.message);
+        const cls = kind === 'failed' ? 'failed' : kind === 'success' ? 'success' : '';
+        const icon = kind === 'failed' ? '&#9650;' : kind === 'success' ? '&#9679;' : '&#183;';
+        return `<div class="log-entry ${cls}">
+            <span class="ts">[${formatClock(entry.timestamp)}]</span>
+            ${icon} <strong>${escapeHtml(entry.source || '?')}</strong> — ${escapeHtml(entry.message || '')}
+        </div>`;
+    }).join('');
+}
+
+function escapeHtml(value) {
+    return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;');
+}
+
+function renderError(message) {
+    document.getElementById('status-line').textContent = 'GAGAL MEMUAT DATA';
+    for (const id of ['timeline-chart', 'attacker-list', 'log-container']) {
+        document.getElementById(id).innerHTML =
+            `<div class="notice error">${escapeHtml(message)}</div>`;
+    }
+}
+
+/* ── Siklus utama ───────────────────────────────────── */
+async function refresh() {
+    try {
+        const [hasilText, logsText] = await Promise.all([
+            fetchText('hasil.txt'),
+            fetchText('logs.txt'),
+        ]);
+
+        const entries = parseLogs(logsText);
+        render({
+            hasil: parseHasil(hasilText),
+            stats: analyze(entries),
+            entries,
+        });
+    } catch (err) {
+        // Umumnya karena halaman dibuka via file:// — fetch diblokir browser.
+        renderError(`${err.message}. Jalankan lewat web server (mis. python3 -m http.server).`);
+    }
+}
+
+refresh();
+setInterval(refresh, REFRESH_MS);
+</script>
+
+</body>
+</html>

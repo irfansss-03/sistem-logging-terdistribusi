@@ -1,0 +1,27 @@
+# Dependensi
+node_modules/
+npm-debug.log*
+package-lock.json.bak
+
+# Catatan: src/logs.txt & src/hasil.txt sengaja TIDAK diabaikan —
+# keduanya disertakan sebagai contoh data agar dashboard bisa langsung dicoba.
+
+# Hadoop / HDFS
+output_*/
+part-*
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.env
+
+# State klien (posisi baca log + antrean kirim — spesifik per mesin)
+.client_state.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp

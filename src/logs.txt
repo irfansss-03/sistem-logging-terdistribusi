@@ -1,0 +1,9 @@
+{"id":"DnYwZPSU5dsnTJG_jF3Pd","source":"client-windows","message":"Log: Failed login attempt on Windows","timestamp":"2025-06-12T17:10:48.640595"}
+{"id":"Xoyjmln1RrSNLgEI6-vrC","source":"client-windows","message":"Log: Successful login attempt on Windows","timestamp":"2025-06-12T17:10:48.646219"}
+{"id":"v7jk1MiUW8vqSdLGMiUVk","source":"client-windows","message":"Log: Failed login attempt on Windows","timestamp":"2025-06-12T17:14:00.692527"}
+{"id":"CrhkgYPORqnywVWBYmKkA","source":"client-windows","message":"Log: Failed login attempt on Windows","timestamp":"2025-06-12T17:14:00.725383"}
+{"id":"-7KPuSTta-jcM_sAje8j_","source":"client-windows","message":"Log: Failed login attempt on Windows","timestamp":"2025-06-12T17:14:00.753440"}
+{"id":"cO7J_KRq6sPG5fM5YAb2t","source":"client-windows","message":"Log: Successful login attempt on Windows","timestamp":"2025-06-12T17:14:00.772585"}
+{"id":"BN2b7HDoUV44rRY5NUowL","source":"client-debian","message":"Log: Successful login attempt via SSH from 192.168.107.235","timestamp":"2025-06-12T17:14:03.901579"}
+{"id":"oWOS3ZkU5llHwCJb4maky","source":"client-debian","message":"Log: Failed login attempt via SSH from 192.168.107.235","timestamp":"2025-06-12T17:14:03.910095"}
+{"id":"GEVlPqk0aty4-QNWrffAi","source":"client-debian","message":"Log: Failed login attempt via SSH from 192.168.107.235","timestamp":"2025-06-12T17:14:03.913872"}

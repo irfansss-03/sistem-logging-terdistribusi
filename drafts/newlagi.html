@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Security Dashboard - Sistem Logging Terdistribusi</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            overflow-x: auto;
+            position: relative;
+            color: #ffffff;
+        }
+
+        /* Animated Background */
+        .bg-circuit {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(circle at 20% 50%, rgba(0, 162, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(29, 78, 216, 0.1) 0%, transparent 50%);
+            z-index: -2;
+        }
+
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                linear-gradient(90deg, transparent 98%, rgba(0, 162, 255, 0.3) 100%),
+                linear-gradient(transparent 98%, rgba(0, 162, 255, 0.3) 100%);
+            background-size: 50px 50px;
+            animation: matrix-move 20s linear infinite;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        @keyframes matrix-move {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Header */
+        .header {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid rgba(0, 162, 255, 0.3);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, #00a2ff, #0066cc);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            animation: pulse-logo 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-logo {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(0, 162, 255, 0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 0 30px rgba(0, 162, 255, 0.6); }
+        }
+
+        .logo-text {
+            font-family: 'Orbitron', monospace;
+            font-size: 24px;
+            font-weight: 700;
+            color: #00a2ff;
+            text-shadow: 0 0 10px rgba(0, 162, 255, 0.5);
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: #64b5f6;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #00ff88;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .error .status-dot {
+            background: #ff4444;
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: auto auto auto auto;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(0, 162, 255, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 162, 255, 0.1), transparent);
+            animation: scan 4s ease-in-out infinite;
+        }
+
+        @keyframes scan {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 162, 255, 0.2);
+        }
+
+        .card-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 16px;
+            font-weight: 600;
+            color: #00a2ff;
+            text-shadow: 0 0 5px rgba(0, 162, 255, 0.3);
+        }
+
+        .card-icon {
+            font-size: 18px;
+            color: #64b5f6;
+        }
+
+        /* Attack Status Card */
+        .attack-status {
+            grid-column: 1 / 4;
+            background: linear-gradient(135deg, rgba(255, 68, 68, 0.1), rgba(0, 162, 255, 0.1));
+        }
+
+        .attack-display {
+            text-align: center;
+            font-family: 'Orbitron', monospace;
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(0, 162, 255, 0.5);
+            margin: 20px 0;
+        }
+
+        .attack-counters {
+            display: flex;
+            justify-content: space-around;
+            gap: 20px;
+        }
+
+        .counter {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 162, 255, 0.2);
+            flex: 1;
+        }
+
+        .counter-label {
+            font-size: 14px;
+            color: #64b5f6;
+            margin-bottom: 5px;
+        }
+
+        .counter-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .failed {
+            color: #ff4444;
+            text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+        }
+
+        .success {
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        /* Threat Level */
+        .threat-level {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .threat-gauge {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 0deg,
+                #00ff88 0deg 120deg,
+                #ffeb3b 120deg 240deg,
+                #ff4444 240deg 360deg
+            );
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .threat-gauge::before {
+            content: '';
+            width: 90px;
+            height: 90px;
+            background: rgba(15, 23, 42, 0.95);
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        .threat-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 20px;
+            font-weight: 700;
+            z-index: 1;
+        }
+
+        .threat-text {
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        /* Network Stats */
+        .network-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 162, 255, 0.1);
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #64b5f6;
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        /* Activity Log */
+        .activity-log {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 162, 255, 0.1);
+            font-size: 12px;
+        }
+
+        .log-time {
+            color: #64b5f6;
+            font-family: 'Orbitron', monospace;
+            min-width: 60px;
+        }
+
+        .log-type {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .log-info { background: rgba(0, 162, 255, 0.2); color: #00a2ff; }
+        .log-warning { background: rgba(255, 235, 59, 0.2); color: #ffeb3b; }
+        .log-error { background: rgba(255, 68, 68, 0.2); color: #ff4444; }
+
+        .log-message {
+            flex: 1;
+            color: #ffffff;
+        }
+
+        /* Charts */
+        .chart-container {
+            grid-column: 1 / 4;
+            height: 300px;
+        }
+
+        .chart {
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .chart-placeholder {
+            color: #64b5f6;
+            font-size: 16px;
+        }
+
+        /* Attack Map */
+        .attack-map {
+            grid-column: 1 / 3;
+            height: 300px;
+        }
+
+        .map-container {
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .world-map {
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 500"><rect width="1000" height="500" fill="%23001122"/><circle cx="200" cy="100" r="3" fill="%23ff4444" opacity="0.8"><animate attributeName="r" values="3;8;3" dur="2s" repeatCount="indefinite"/></circle><circle cx="800" cy="150" r="3" fill="%23ff4444" opacity="0.8"><animate attributeName="r" values="3;6;3" dur="1.5s" repeatCount="indefinite"/></circle><circle cx="400" cy="200" r="3" fill="%23ff4444" opacity="0.8"><animate attributeName="r" values="3;7;3" dur="1.8s" repeatCount="indefinite"/></circle><circle cx="600" cy="120" r="3" fill="%23ff4444" opacity="0.8"><animate attributeName="r" values="3;5;3" dur="2.2s" repeatCount="indefinite"/></circle></svg>') center/cover no-repeat;
+        }
+
+        .attack-indicator {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #ff4444;
+            border-radius: 50%;
+            animation: attack-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes attack-pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(2); opacity: 1; }
+        }
+
+        /* Firewall Status */
+        .firewall-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .firewall-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .firewall-status {
+            font-size: 12px;
+            color: #64b5f6;
+            margin-bottom: 5px;
+        }
+
+        .firewall-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .active { color: #00ff88; }
+        .blocked { color: #ff4444; }
+
+        /* Vulnerability Scanner */
+        .vuln-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .vuln-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 162, 255, 0.1);
+        }
+
+        .vuln-severity {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .critical { background: rgba(255, 68, 68, 0.3); color: #ff4444; }
+        .high { background: rgba(255, 152, 0, 0.3); color: #ff9800; }
+        .medium { background: rgba(255, 235, 59, 0.3); color: #ffeb3b; }
+        .low { background: rgba(76, 175, 80, 0.3); color: #4caf50; }
+
+        /* Loading Animation */
+        .loading {
+            color: #ffeb3b;
+            animation: loading-pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes loading-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .attack-status {
+                grid-column: 1 / 3;
+            }
+            
+            .chart-container {
+                grid-column: 1 / 3;
+            }
+            
+            .attack-map {
+                grid-column: 1 / 3;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .attack-status,
+            .chart-container,
+            .attack-map {
+                grid-column: 1;
+            }
+            
+            .attack-counters {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 162, 255, 0.5);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 162, 255, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-circuit"></div>
+    <div class="matrix-bg"></div>
+
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">🛡️</div>
+                <div class="logo-text">CYBERSEC DEFENSE</div>
+            </div>
+            <div class="connection-status" id="connectionStatus">
+                <div class="status-dot"></div>
+                <span>SISTEM ONLINE</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="dashboard-grid">
+            <!-- Attack Status -->
+            <div class="card attack-status">
+                <div class="card-header">
+                    <div class="card-title">🚨 STATUS SERANGAN REAL-TIME</div>
+                    <div class="card-icon">⚡</div>
+                </div>
+                <div class="attack-display" id="attackDisplay">
+                    <span class="loading">⚡ MEMUAT SISTEM KEAMANAN...</span>
+                </div>
+                <div class="attack-counters">
+                    <div class="counter">
+                        <div class="counter-label">SERANGAN GAGAL</div>
+                        <div class="counter-value failed" id="failedCount">0</div>
+                    </div>
+                    <div class="counter">
+                        <div class="counter-label">BERHASIL MASUK</div>
+                        <div class="counter-value success" id="successCount">0</div>
+                    </div>
+                    <div class="counter">
+                        <div class="counter-label">TOTAL PERCOBAAN</div>
+                        <div class="counter-value" id="totalCount">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Threat Level -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">⚠️ TINGKAT ANCAMAN</div>
+                    <div class="card-icon">📊</div>
+                </div>
+                <div class="threat-level">
+                    <div class="threat-gauge">
+                        <div class="threat-value" id="threatLevel">LOW</div>
+                    </div>
+                    <div class="threat-text" id="threatText">SISTEM AMAN</div>
+                </div>
+            </div>
+
+            <!-- Network Statistics -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🖥️ STATISTIK JARINGAN</div>
+                    <div class="card-icon">📡</div>
+                </div>
+                <div class="network-stats">
+                    <div class="stat-row">
+                        <span class="stat-label">Server IP</span>
+                        <span class="stat-value">192.168.1.1</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Network</span>
+                        <span class="stat-value">192.168.1.0/24</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Port Aktif</span>
+                        <span class="stat-value" id="activePorts">22, 80, 443</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Uptime</span>
+                        <span class="stat-value" id="uptime">99.9%</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Bandwidth</span>
+                        <span class="stat-value" id="bandwidth">1.2 Gbps</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Latency</span>
+                        <span class="stat-value" id="latency">12ms</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Threat Detection -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🤖 AI THREAT DETECTION</div>
+                    <div class="card-icon">🎯</div>
+                </div>
+                <div class="network-stats">
+                    <div class="stat-row">
+                        <span class="stat-label">AI Status</span>
+                        <span class="stat-value active">AKTIF</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Analisis Real-time</span>
+                        <span class="stat-value active">RUNNING</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Pattern Match</span>
+                        <span class="stat-value" id="patternMatch">98.7%</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Ancaman Terdeteksi</span>
+                        <span class="stat-value" id="threatsDetected">247</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">False Positive</span>
+                        <span class="stat-value" id="falsePositive">0.3%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Log -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">📋 LOG AKTIVITAS</div>
+                    <div class="card-icon">📝</div>
+                </div>
+                <div class="activity-log" id="activityLog">
+                    <div class="log-entry">
+                        <span class="log-time">12:34</span>
+                        <span class="log-type log-info">INFO</span>
+                        <span class="log-message">Sistem keamanan aktif</span>
+                    </div>
+                    <div class="log-entry">
+                        <span class="log-time">12:35</span>
+                        <span class="log-type log-warning">WARN</span>
+                        <span class="log-message">Percobaan login mencurigakan</span>
+                    </div>
+                    <div class="log-entry">
+                        <span class="log-time">12:36</span>
+                        <span class="log-type log-error">ERROR</span>
+                        <span class="log-message">Serangan brute force terdeteksi</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Firewall Defense -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🔥 FIREWALL DEFENSE</div>
+                    <div class="card-icon">🛡️</div>
+                </div>
+                <div class="firewall-grid">
+                    <div class="firewall-item">
+                        <div class="firewall-status">Status</div>
+                        <div class="firewall-value active">AKTIF</div>
+                    </div>
+                    <div class="firewall-item">
+                        <div class="firewall-status">Rules</div>
+                        <div class="firewall-value">1,247</div>
+                    </div>
+                    <div class="firewall-item">
+                        <div class="firewall-status">Blocked</div>
+                        <div class="firewall-value blocked" id="blockedIPs">89</div>
+                    </div>
+                    <div class="firewall-item">
+                        <div class="firewall-status">Allowed</div>
+                        <div class="firewall-value active" id="allowedIPs">2,341</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Network Activity Chart -->
+            <div class="card chart-container">
+                <div class="card-header">
+                    <div class="card-title">📈 GRAFIK AKTIVITAS JARINGAN</div>
+                    <div class="card-icon">📊</div>
+                </div>
+                <div class="chart">
+                    <canvas id="networkChart" width="100%" height="250"></canvas>
+                </div>
+            </div>
+
+            <!-- Attack Map -->
+            <div class="card attack-map">
+                <div class="card-header">
+                    <div class="card-title">🗺️ PETA SERANGAN GLOBAL</div>
+                    <div class="card-icon">🌍</div>
+                </div>
+                <div class="map-container">
+                    <div class="world-map" id="attackMap"></div>
+                </div>
+            </div>
+
+            <!-- Vulnerability Scanner -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🔍 VULNERABILITY SCANNER</div>
+                    <div class="card-icon">🔎</div>
+                </div>
+                <div class="vuln-list" id="vulnList">
+                    <div class="vuln-item">
+                        <span>CVE-2024-0001</span>
+                        <span class="vuln-severity critical">CRITICAL</span>
+                    </div>
+                    <div class="vuln-item">
+                        <span>CVE-2024-0002</span>
+                        <span class="vuln-severity high">HIGH</span>
+                    </div>
+                    <div class="vuln-item">
+                        <span>CVE-2024-0003</span>
+                        <span class="vuln-severity medium">MEDIUM</span>
+                    </div>
+                    <div class="vuln-item">
+                        <span>CVE-2024-0004</span>
+                        <span class="vuln-severity low">LOW</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let networkChart;
+        let attackData = { failed: 0, success: 0 };
+        let logEntries = [];
+
+        // Initialize Chart
+        function initChart() {
+            const canvas = document.getElementById('networkChart');
+            const ctx = canvas.getContext('2d');
+            
+            // Simple chart implementation
+            const data = {
+                labels: [],
+                failed: [],
+                success: []
+            };
+
+            // Generate last 24 hours data
+            for (let i = 23; i >= 0; i--) {
+                const hour = new Date();
+                hour.setHours(hour.getHours() - i);
+                data.labels.push(hour.getHours().toString().padStart(2, '0') + ':00');
+                data.failed.push(Math.floor(Math.random() * 50));
+                data.success.push(Math.floor(Math.random() * 10));
+            }
+
+            drawChart(ctx, canvas, data);
+        }
+
+        function drawChart(ctx, canvas, data) {
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 50;
+            const chartWidth = width - padding * 2;
+            const chartHeight = height - padding * 2;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+
+            // Background
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(0, 0, width, height);
+
+            // Grid
+            ctx.strokeStyle = 'rgba(0, 162, 255, 0.2)';
+            ctx.lineWidth = 1;
+
+            // Horizontal grid lines
+            for (let i = 0; i <= 5; i++) {
+                const y = padding + (chartHeight / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(width - padding, y);
+                ctx.stroke();
+            }
+
+            // Vertical grid lines
+            const stepX = chartWidth / (data.labels.length - 1);
+            for (let i = 0; i < data.labels.length; i += 4) {
+                const x = padding + stepX * i;
+                ctx.beginPath();
+                ctx.moveTo(x, padding);
+                ctx.lineTo(x, height - padding);
+                ctx.stroke();
+            }
+
+            // Draw lines
+            const maxValue = Math.max(...data.failed, ...data.success, 1);
+
+            // Failed attacks line
+            ctx.strokeStyle = '#ff4444';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = 0; i < data.failed.length; i++) {
+                const x = padding + stepX * i;
+                const y = height - padding - (data.failed[i] / maxValue) * chartHeight;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // Success attacks line
+            ctx.strokeStyle = '#00ff88';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = 0; i < data.success.length; i++) {
+                const x = padding + stepX * i;
+                const y = height - padding - (data.success[i] / maxValue) * chartHeight;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#64b5f6';
+            ctx.font = '12px Rajdhani';
+            ctx.textAlign = 'center';
+
+            // X-axis labels
+            for (let i = 0; i < data.labels.length; i += 4) {
+                const x = padding + stepX * i;
+                ctx.fillText(data.labels[i], x, height - 20);
+            }
+
+            // Y-axis labels
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= 5; i++) {
+                const y = padding + (chartHeight / 5) * i;
+                const value = Math.round(maxValue - (maxValue / 5) * i);
+                ctx.fillText(value.toString(), padding - 10, y + 4);
+            }
+
+            // Legend
+            ctx.fillStyle = '#ff4444';
+            ctx.fillRect(width - 150, 20, 10, 10);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '12px Rajdhani';
+            ctx.textAlign = 'left';
+            ctx.fillText('Serangan Gagal', width - 135, 30);
+
+            ctx.fillStyle = '#00ff88';
+            ctx.fillRect(width - 150, 40, 10, 10);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText('Berhasil Masuk', width - 135, 50);
+        }
+
+        // Update threat level based on attack data
+        function updateThreatLevel() {
+            const total = attackData.failed + attackData.success;
+            const threatLevel = document.getElementById('threatLevel');
+            const threatText = document.getElementById('threatText');
+            
+            let level, text, color;
+            
+            if (total < 10) {
+                level = 'LOW';
+                text = 'SISTEM AMAN';
+                color = '#00ff88';
+            } else if (total < 50) {
+                level = 'MEDIUM';
+                text = 'WASPADA';
+                color = '#ffeb3b';
+            } else {
+                level = 'HIGH';
+                text = 'ANCAMAN TINGGI';
+                color = '#ff4444';
+            }
+            
+            threatLevel.textContent = level;
+            threatLevel.style.color = color;
+            threatText.textContent = text;
+            threatText.style.color = color;
+        }
+
+        // Add log entry
+        function addLogEntry(type, message) {
+            const now = new Date();
+            const time = now.getHours().toString().padStart(2, '0') + ':' + 
+                        now.getMinutes().toString().padStart(2, '0');
+            
+            logEntries.unshift({
+                time: time,
+                type: type,
+                message: message
+            });
+            
+            // Keep only last 50 entries
+            if (logEntries.length > 50) {
+                logEntries = logEntries.slice(0, 50);
+            }
+            
+            updateActivityLog();
+        }
+
+        // Update activity log display
+        function updateActivityLog() {
+            const logContainer = document.getElementById('activityLog');
+            logContainer.innerHTML = '';
+            
+            logEntries.slice(0, 10).forEach(entry => {
+                const logDiv = document.createElement('div');
+                logDiv.className = 'log-entry';
+                logDiv.innerHTML = `
+                    <span class="log-time">${entry.time}</span>
+                    <span class="log-type log-${entry.type}">${entry.type.toUpperCase()}</span>
+                    <span class="log-message">${entry.message}</span>
+                `;
+                logContainer.appendChild(logDiv);
+            });
+        }
+
+        // Update network statistics
+        function updateNetworkStats() {
+            // Simulate dynamic network stats
+            const stats = {
+                activePorts: Math.floor(Math.random() * 5) + 3,
+                uptime: (99.5 + Math.random() * 0.4).toFixed(1),
+                bandwidth: (1.0 + Math.random() * 0.5).toFixed(1),
+                latency: Math.floor(Math.random() * 20) + 10,
+                patternMatch: (95 + Math.random() * 4).toFixed(1),
+                threatsDetected: Math.floor(Math.random() * 50) + 200,
+                falsePositive: (Math.random() * 0.5).toFixed(1),
+                blockedIPs: Math.floor(Math.random() * 20) + 80,
+                allowedIPs: Math.floor(Math.random() * 100) + 2300
+            };
+
+            document.getElementById('activePorts').textContent = 
+                ['22', '80', '443', '3306', '5432'].slice(0, stats.activePorts).join(', ');
+            document.getElementById('uptime').textContent = stats.uptime + '%';
+            document.getElementById('bandwidth').textContent = stats.bandwidth + ' Gbps';
+            document.getElementById('latency').textContent = stats.latency + 'ms';
+            document.getElementById('patternMatch').textContent = stats.patternMatch + '%';
+            document.getElementById('threatsDetected').textContent = stats.threatsDetected;
+            document.getElementById('falsePositive').textContent = stats.falsePositive + '%';
+            document.getElementById('blockedIPs').textContent = stats.blockedIPs;
+            document.getElementById('allowedIPs').textContent = stats.allowedIPs;
+        }
+
+        // Generate random attack indicators on map
+        function updateAttackMap() {
+            const mapContainer = document.querySelector('.world-map');
+            const indicators = mapContainer.querySelectorAll('.attack-indicator');
+            
+            // Remove old indicators
+            indicators.forEach(indicator => indicator.remove());
+            
+            // Add new random attack indicators
+            const attackCount = Math.floor(Math.random() * 8) + 3;
+            for (let i = 0; i < attackCount; i++) {
+                const indicator = document.createElement('div');
+                indicator.className = 'attack-indicator';
+                indicator.style.left = Math.random() * 90 + '%';
+                indicator.style.top = Math.random() * 80 + '%';
+                indicator.style.animationDelay = Math.random() * 2 + 's';
+                mapContainer.appendChild(indicator);
+            }
+        }
+
+        // Update vulnerability list
+        function updateVulnerabilities() {
+            const vulnContainer = document.getElementById('vulnList');
+            const vulnerabilities = [
+                { id: 'CVE-2024-0001', severity: 'critical', name: 'Buffer Overflow' },
+                { id: 'CVE-2024-0002', severity: 'high', name: 'SQL Injection' },
+                { id: 'CVE-2024-0003', severity: 'medium', name: 'XSS Vulnerability' },
+                { id: 'CVE-2024-0004', severity: 'low', name: 'Information Disclosure' },
+                { id: 'CVE-2024-0005', severity: 'high', name: 'Remote Code Execution' },
+                { id: 'CVE-2024-0006', severity: 'medium', name: 'CSRF Attack' },
+                { id: 'CVE-2024-0007', severity: 'critical', name: 'Authentication Bypass' },
+                { id: 'CVE-2024-0008', severity: 'low', name: 'Directory Traversal' }
+            ];
+            
+            // Shuffle and pick random vulnerabilities
+            const shuffled = vulnerabilities.sort(() => 0.5 - Math.random());
+            const selected = shuffled.slice(0, 4 + Math.floor(Math.random() * 4));
+            
+            vulnContainer.innerHTML = '';
+            selected.forEach(vuln => {
+                const vulnDiv = document.createElement('div');
+                vulnDiv.className = 'vuln-item';
+                vulnDiv.innerHTML = `
+                    <span>${vuln.id}</span>
+                    <span class="vuln-severity ${vuln.severity}">${vuln.severity.toUpperCase()}</span>
+                `;
+                vulnContainer.appendChild(vulnDiv);
+            });
+        }
+
+        // Main update function - reads from hasil.txt
+        function updateStatus() {
+            fetch("hasil.txt?" + new Date().getTime())
+            .then(res => {
+                if (!res.ok) throw new Error("HTTP error " + res.status);
+                return res.text();
+            })
+            .then(data => {
+                console.log("[DEBUG] Data fetched:\n" + data);
+                let lines = data.trim().split("\n");
+                let failed = 0, success = 0;
+
+                lines.forEach(line => {
+                    if (line.startsWith("failed_login")) failed = parseInt(line.split(":")[1]) || 0;
+                    if (line.startsWith("successful_login")) success = parseInt(line.split(":")[1]) || 0;
+                });
+
+                // Update attack data
+                const prevFailed = attackData.failed;
+                const prevSuccess = attackData.success;
+                attackData.failed = failed;
+                attackData.success = success;
+
+                // Update main status display
+                const total = failed + success;
+                let statusMsg = `🔒 GAGAL: ${failed} | ✅ BERHASIL: ${success} | 📊 TOTAL: ${total}`;
+                document.getElementById("attackDisplay").innerHTML = statusMsg;
+
+                // Update individual counters
+                document.getElementById("failedCount").textContent = failed;
+                document.getElementById("successCount").textContent = success;
+                document.getElementById("totalCount").textContent = total;
+
+                // Add log entries for new attacks
+                if (failed > prevFailed) {
+                    addLogEntry('error', `${failed - prevFailed} serangan gagal terdeteksi`);
+                }
+                if (success > prevSuccess) {
+                    addLogEntry('warning', `${success - prevSuccess} login berhasil dicatat`);
+                }
+
+                // Update threat level
+                updateThreatLevel();
+
+                // Update connection status
+                const connectionStatus = document.getElementById("connectionStatus");
+                connectionStatus.className = "connection-status";
+                connectionStatus.innerHTML = '<div class="status-dot"></div><span>SISTEM ONLINE</span>';
+                
+                // Add system info log
+                if (Math.random() < 0.3) {
+                    addLogEntry('info', 'Sistem monitoring berjalan normal');
+                }
+            })
+            .catch(err => {
+                console.error("[ERROR] Gagal membaca hasil.txt:", err);
+                document.getElementById("attackDisplay").innerHTML = "❌ KONEKSI SISTEM TERPUTUS";
+
+                // Update connection status to error
+                const connectionStatus = document.getElementById("connectionStatus");
+                connectionStatus.className = "connection-status error";
+                connectionStatus.innerHTML = '<div class="status-dot"></div><span>SISTEM OFFLINE</span>';
+                
+                addLogEntry('error', 'Koneksi ke server monitoring terputus');
+            });
+        }
+
+        // Add system startup logs
+        function initializeSystem() {
+            addLogEntry('info', 'Sistem keamanan diinisialisasi');
+            addLogEntry('info', 'Firewall defense aktif');
+            addLogEntry('info', 'AI threat detection dimulai');
+            addLogEntry('info', 'Network monitoring online');
+            addLogEntry('info', 'Vulnerability scanner siap');
+        }
+
+        // Initialize everything when page loads
+        window.addEventListener('load', function() {
+            // Initialize chart
+            setTimeout(() => {
+                initChart();
+            }, 100);
+            
+            // Initialize system
+            initializeSystem();
+            
+            // Initial data fetch
+            updateStatus();
+            updateNetworkStats();
+            updateAttackMap();
+            updateVulnerabilities();
+            
+            // Set up intervals
+            setInterval(updateStatus, 5000);           // Update main data every 5 seconds
+            setInterval(updateNetworkStats, 10000);    // Update network stats every 10 seconds
+            setInterval(updateAttackMap, 15000);       // Update attack map every 15 seconds
+            setInterval(updateVulnerabilities, 30000); // Update vulnerabilities every 30 seconds
+            
+            // Add random system logs periodically
+            setInterval(() => {
+                if (Math.random() < 0.4) {
+                    const messages = [
+                        'Pemindaian keamanan selesai',
+                        'Database threat signature diperbarui',
+                        'Backup log berhasil',
+                        'Optimasi performa jaringan',
+                        'Validasi integritas sistem',
+                        'Monitoring bandwidth normal',
+                        'Deteksi anomali tidak ditemukan'
+                    ];
+                    const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+                    addLogEntry('info', randomMsg);
+                }
+            }, 20000);
+            
+            // Add visual effects
+            setInterval(() => {
+                const dashboard = document.querySelector('.main-container');
+                if (dashboard) {
+                    dashboard.style.filter = `hue-rotate(${Math.sin(Date.now() / 10000) * 10}deg)`;
+                }
+            }, 100);
+        });
+
+        // Resize chart when window resizes
+        window.addEventListener('resize', function() {
+            setTimeout(() => {
+                const canvas = document.getElementById('networkChart');
+                if (canvas) {
+                    canvas.width = canvas.offsetWidth;
+                    canvas.height = 250;
+                    initChart();
+                }
+            }, 100);
+        });
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'r') {
+                e.preventDefault();
+                updateStatus();
+                addLogEntry('info', 'Refresh manual dipicu');
+            }
+        });
+
+        // Add click handlers for interactive elements
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.threat-gauge')) {
+                addLogEntry('info', 'Threat level gauge diklik');
+            }
+            
+            if (e.target.closest('.world-map')) {
+                addLogEntry('info', 'Peta serangan global diperiksa');
+            }
+        });
+
+        // Console welcome message
+        console.log(`
+    ╔═══════════════════════════════════════════════════════════════╗
+    ║                  CYBERSEC DEFENSE SYSTEM                     ║
+    ║                   Advanced Security Dashboard                 ║
+    ║                                                               ║
+    ║  🛡️  Sistem Logging Terdistribusi untuk Deteksi Serangan    ║
+    ║  🔥  Real-time Firewall Defense                              ║
+    ║  🤖  AI-Powered Threat Detection                             ║
+    ║  🌍  Global Attack Monitoring                                ║
+    ║  📊  Advanced Network Analytics                              ║
+    ║                                                               ║
+    ║  Status: ONLINE | Version: 2.0 | Build: 2024.06.12         ║
+    ╚═══════════════════════════════════════════════════════════════╝
+        `);
+    </script>
+</body>
+</html>

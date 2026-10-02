@@ -1,0 +1,446 @@
+ 
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Logging Terdistribusi - Deteksi Serangan</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated Background Elements */
+        .bg-circuit {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(circle at 20% 50%, rgba(0, 162, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(29, 78, 216, 0.1) 0%, transparent 50%);
+            z-index: -2;
+        }
+
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                linear-gradient(90deg, transparent 98%, rgba(0, 162, 255, 0.3) 100%),
+                linear-gradient(transparent 98%, rgba(0, 162, 255, 0.3) 100%);
+            background-size: 50px 50px;
+            animation: matrix-move 20s linear infinite;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        @keyframes matrix-move {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Glowing particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #00a2ff;
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+            opacity: 0.7;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.7; }
+            50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
+        }
+
+        /* Main Container */
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .dashboard {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(0, 162, 255, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow:
+                0 0 50px rgba(0, 162, 255, 0.2),
+                inset 0 0 50px rgba(0, 162, 255, 0.1);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .dashboard::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #00a2ff, #0066cc, #003d7a, #00a2ff);
+            border-radius: 20px;
+            z-index: -1;
+            animation: border-glow 3s ease-in-out infinite;
+        }
+
+        @keyframes border-glow {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .title {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #00a2ff;
+            text-shadow:
+                0 0 10px rgba(0, 162, 255, 0.5),
+                0 0 20px rgba(0, 162, 255, 0.3);
+            margin-bottom: 10px;
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { text-shadow: 0 0 10px rgba(0, 162, 255, 0.5), 0 0 20px rgba(0, 162, 255, 0.3); }
+            50% { text-shadow: 0 0 20px rgba(0, 162, 255, 0.8), 0 0 30px rgba(0, 162, 255, 0.5); }
+        }
+
+        .title-secondary {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #64b5f6;
+            text-shadow:
+                0 0 8px rgba(100, 181, 246, 0.5),
+                0 0 16px rgba(100, 181, 246, 0.3);
+            margin-bottom: 15px;
+            animation: pulse-glow-secondary 2.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow-secondary {
+            0%, 100% { text-shadow: 0 0 8px rgba(100, 181, 246, 0.5), 0 0 16px rgba(100, 181, 246, 0.3); }
+            50% { text-shadow: 0 0 16px rgba(100, 181, 246, 0.8), 0 0 24px rgba(100, 181, 246, 0.5); }
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #64b5f6;
+            font-weight: 300;
+            margin-bottom: 5px;
+        }
+
+        .tech-stack {
+            font-size: 1rem;
+            color: #90caf9;
+            font-weight: 400;
+            margin-bottom: 10px;
+        }
+
+        .status-container {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 162, 255, 0.2);
+            border-radius: 15px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .status-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 162, 255, 0.1), transparent);
+            animation: scan 3s ease-in-out infinite;
+        }
+
+        @keyframes scan {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .status-display {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            color: #ffffff;
+            text-align: center;
+            font-weight: 600;
+            text-shadow: 0 0 10px rgba(0, 162, 255, 0.3);
+            z-index: 1;
+            position: relative;
+        }
+
+        .loading {
+            color: #ffeb3b;
+            animation: loading-pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes loading-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+            gap: 20px;
+        }
+
+        .stat-item {
+            background: rgba(0, 162, 255, 0.1);
+            border: 1px solid rgba(0, 162, 255, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00a2ff, transparent);
+            animation: progress-bar 2s ease-in-out infinite;
+        }
+
+        @keyframes progress-bar {
+            0%, 100% { transform: translateX(-100%); }
+            50% { transform: translateX(100%); }
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #64b5f6;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(0, 162, 255, 0.5);
+        }
+
+        .failed {
+            color: #ff4444;
+            text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+        }
+
+        .success {
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .connection-status {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: #64b5f6;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff88;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .error .status-dot {
+            background: #ff4444;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .title {
+                font-size: 2rem;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-circuit"></div>
+    <div class="matrix-bg"></div>
+    <div class="particles" id="particles"></div>
+
+    <div class="container">
+        <div class="dashboard">
+            <div class="connection-status" id="connectionStatus">
+                <div class="status-dot"></div>
+                <span>ONLINE</span>
+            </div>
+
+            <div class="header">
+                <h1 class="title">SISTEM LOGGING TERDISTRIBUSI</h1>
+                <h2 class="title-secondary">untuk Deteksi Serangan Jaringan</h2>
+                <p class="subtitle">Status Serangan Real-time</p>
+            </div>
+
+            <div class="status-container">
+                <div class="status-display" id="status">
+                    <span class="loading">⚡ MEMUAT SISTEM...</span>
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-label">SERANGAN GAGAL</div>
+                    <div class="stat-value failed" id="failedCount">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">BERHASIL MASUK</div>
+                    <div class="stat-value success" id="successCount">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Update status function
+        function updateStatus() {
+            fetch("hasil.txt?" + new Date().getTime())
+            .then(res => {
+                if (!res.ok) throw new Error("HTTP error " + res.status);
+                return res.text();
+            })
+            .then(data => {
+                console.log("[DEBUG] Data fetched:\n" + data);
+                let lines = data.trim().split("\n");
+                let failed = 0, success = 0;
+
+                lines.forEach(line => {
+                    if (line.startsWith("failed_login")) failed = parseInt(line.split(":")[1]);
+                    if (line.startsWith("successful_login")) success = parseInt(line.split(":")[1]);
+                });
+
+                // Update main status
+                let msg = `🔒 GAGAL: ${failed} | ✅ BERHASIL: ${success}`;
+                document.getElementById("status").innerHTML = msg;
+
+                // Update individual counters
+                document.getElementById("failedCount").textContent = failed;
+                document.getElementById("successCount").textContent = success;
+
+                // Update connection status
+                const connectionStatus = document.getElementById("connectionStatus");
+                connectionStatus.className = "connection-status";
+                connectionStatus.innerHTML = '<div class="status-dot"></div><span>ONLINE</span>';
+            })
+            .catch(err => {
+                console.error("[ERROR] Gagal membaca hasil.txt:", err);
+                document.getElementById("status").innerHTML = "❌ KONEKSI TERPUTUS";
+
+                // Update connection status to error
+                const connectionStatus = document.getElementById("connectionStatus");
+                connectionStatus.className = "connection-status error";
+                connectionStatus.innerHTML = '<div class="status-dot"></div><span>OFFLINE</span>';
+            });
+        }
+
+        // Initialize
+        createParticles();
+        updateStatus();
+        setInterval(updateStatus, 5000);
+
+        // Add some dynamic effects
+        setInterval(() => {
+            const dashboard = document.querySelector('.dashboard');
+            dashboard.style.boxShadow = `
+                0 0 ${50 + Math.random() * 20}px rgba(0, 162, 255, 0.2),
+                inset 0 0 50px rgba(0, 162, 255, 0.1)
+            `;
+        }, 2000);
+    </script>
+</body>
+</html>
